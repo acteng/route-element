@@ -2,12 +2,24 @@
   import "@picocss/pico/css/pico.jade.min.css";
   import init, { evalRoute } from "backend";
   import { Layout } from "svelte-utils/two_column_layout";
+  import { Popup, isLine, isPolygon } from "svelte-utils/map";
   import type { Map } from "maplibre-gl";
   import { onMount } from "svelte";
-  import { MapLibre, GeoJSON, LineLayer } from "svelte-maplibre";
+  import {
+    MapLibre,
+    GeoJSON,
+    LineLayer,
+    FillLayer,
+    hoverStateFilter,
+  } from "svelte-maplibre";
   import { exampleGj } from "./examples";
   import { zoomTo } from "./common";
-  import type { Feature, FeatureCollection, LineString } from "geojson";
+  import type {
+    Feature,
+    Polygon,
+    FeatureCollection,
+    LineString,
+  } from "geojson";
 
   let maptilerApiKey = "MZEJTanw3WpxRvt7qDfo";
   let map: Map | undefined;
@@ -22,6 +34,16 @@
 
   let line: Feature<LineString> | undefined;
   $: parseLines(map, inputGj);
+
+  interface Output {
+    length: number;
+    ruc: Feature<Polygon>[];
+  }
+  let output: Output = {
+    length: 0,
+    ruc: [],
+  };
+  $: update(loaded, line);
 
   function parseLines(map: Map | undefined, inputGj: string) {
     if (!map) {
@@ -46,15 +68,31 @@
     }
   }
 
-  function makeGj(line: Feature<LineString> | undefined): FeatureCollection {
+  function makeGj(
+    line: Feature<LineString> | undefined,
+    output: Output,
+  ): FeatureCollection {
     let gj: FeatureCollection = {
       type: "FeatureCollection" as const,
-      features: [],
+      features: output.ruc,
     };
     if (line) {
       gj.features.push(line);
     }
     return gj;
+  }
+
+  async function update(
+    loaded: boolean,
+    line: Feature<LineString> | undefined,
+  ) {
+    if (loaded && line) {
+      try {
+        output = JSON.parse(await evalRoute(line));
+      } catch (err) {
+        window.alert(err);
+      }
+    }
   }
 </script>
 
@@ -64,9 +102,7 @@
     <textarea bind:value={inputGj} rows={5} />
 
     <p>Output:</p>
-    {#if line && loaded}
-      <p>{evalRoute(line)}</p>
-    {/if}
+    <p>Length: {Math.round(output.length)} m</p>
   </div>
 
   <div slot="main" style="position:relative; width: 100%; height: 100vh;">
@@ -75,13 +111,24 @@
       standardControls
       bind:map
     >
-      <GeoJSON data={makeGj(line)}>
+      <GeoJSON data={makeGj(line, output)} generateId>
         <LineLayer
+          filter={isLine}
           paint={{
             "line-width": 5,
             "line-color": "red",
           }}
         />
+
+        <FillLayer
+          filter={isPolygon}
+          paint={{
+            "fill-color": "green",
+            "fill-opacity": hoverStateFilter(0.3, 0.5),
+          }}
+        >
+          <Popup openOn="hover" let:props>{props.RUC11}</Popup>
+        </FillLayer>
       </GeoJSON>
     </MapLibre>
   </div>
