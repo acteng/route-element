@@ -2,7 +2,7 @@ use std::sync::Once;
 
 use anyhow::{bail, Result};
 use flatgeobuf::{FeatureProperties, FgbFeature, GeozeroGeometry, HttpFgbReader};
-use geo::{BoundingRect, Haversine, Intersects, Length, LineString, Polygon, Rect};
+use geo::{BoundingRect, Haversine, Intersects, Length, LineString, MultiPolygon, Rect};
 use geojson::{Feature, Geometry};
 
 use wasm_bindgen::prelude::*;
@@ -44,7 +44,7 @@ async fn read_nearby_polygons<T: geozero::PropertyReadType>(
     bbox: Rect,
     url: &str,
     key: &str,
-) -> Result<Vec<(Polygon, T)>> {
+) -> Result<Vec<(MultiPolygon, T)>> {
     let mut fgb = HttpFgbReader::open(url)
         .await?
         .select_bbox(bbox.min().x, bbox.min().y, bbox.max().x, bbox.max().y)
@@ -52,18 +52,19 @@ async fn read_nearby_polygons<T: geozero::PropertyReadType>(
 
     let mut polygons = Vec::new();
     while let Some(feature) = fgb.next().await? {
-        let polygon = get_polygon(feature)?;
+        let polygon = get_multi_polygon(feature)?;
         let value: T = feature.property(key)?;
         polygons.push((polygon, value));
     }
     Ok(polygons)
 }
 
-fn get_polygon(f: &FgbFeature) -> Result<Polygon> {
+fn get_multi_polygon(f: &FgbFeature) -> Result<MultiPolygon> {
     let mut p = geozero::geo_types::GeoWriter::new();
     f.process_geom(&mut p)?;
     match p.take_geometry().unwrap() {
-        geo::Geometry::Polygon(p) => Ok(p),
+        geo::Geometry::Polygon(p) => Ok(MultiPolygon(vec![p])),
+        geo::Geometry::MultiPolygon(mp) => Ok(mp),
         _ => bail!("Wrong type in fgb"),
     }
 }
