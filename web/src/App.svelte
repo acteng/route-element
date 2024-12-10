@@ -37,13 +37,17 @@
 
   interface Output {
     length: number;
-    ruc: Feature<Polygon>[];
+    ruc: Feature<Polygon, { RUC11: string }>[];
   }
   let output: Output = {
     length: 0,
     ruc: [],
   };
   $: update(loaded, line);
+
+  $: numUrbanAreas = output.ruc.filter((f) =>
+    f.properties.RUC11.startsWith("Urban"),
+  ).length;
 
   function parseLines(map: Map | undefined, inputGj: string) {
     if (!map) {
@@ -103,6 +107,7 @@
 
     <p>Output:</p>
     <p>Length: {Math.round(output.length)} m</p>
+    <p>{numUrbanAreas} urban OAs, {output.ruc.length - numUrbanAreas} rural</p>
   </div>
 
   <div slot="main" style="position:relative; width: 100%; height: 100vh;">
@@ -122,8 +127,14 @@
 
         <FillLayer
           filter={isPolygon}
+          manageHoverState
           paint={{
-            "fill-color": "green",
+            "fill-color": [
+              "case",
+              ["in", "Urban", ["get", "RUC11"]],
+              "orange",
+              "green",
+            ],
             "fill-opacity": hoverStateFilter(0.3, 0.5),
           }}
         >

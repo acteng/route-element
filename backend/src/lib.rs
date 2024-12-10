@@ -2,7 +2,7 @@ use std::sync::Once;
 
 use anyhow::{bail, Result};
 use flatgeobuf::{FeatureProperties, FgbFeature, GeozeroGeometry, HttpFgbReader};
-use geo::{BoundingRect, Haversine, Length, LineString, Polygon, Rect};
+use geo::{BoundingRect, Haversine, Intersects, Length, LineString, Polygon, Rect};
 use geojson::{Feature, Geometry};
 
 use wasm_bindgen::prelude::*;
@@ -19,7 +19,8 @@ pub async fn eval_route(input: JsValue) -> Result<String, JsValue> {
 
     let bbox = line.bounding_rect().unwrap();
     let url = "https://assets.od2net.org/route-element/ruc.fgb";
-    let polygons = read_nearby_polygons(bbox, url).await.map_err(err_to_js)?;
+    let mut polygons = read_nearby_polygons(bbox, url).await.map_err(err_to_js)?;
+    polygons.retain(|(p, _)| p.intersects(&line));
 
     Ok(serde_json::json!({
         "length": line.length::<Haversine>(),
