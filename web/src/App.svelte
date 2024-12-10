@@ -44,7 +44,9 @@
     length: 0,
     ruc: [],
   };
-  $: update(loaded, line);
+  $: if (loaded && line && output.length == 0) {
+    recalc();
+  }
 
   $: numUrbanAreas = output.ruc.filter((f) =>
     f.properties.RUC11.startsWith("Urban"),
@@ -87,10 +89,7 @@
     return gj;
   }
 
-  async function update(
-    loaded: boolean,
-    line: Feature<LineString> | undefined,
-  ) {
+  async function recalc() {
     if (loaded && line) {
       try {
         output = JSON.parse(await evalRoute(line));
@@ -107,6 +106,7 @@
     <textarea bind:value={inputGj} rows={5} />
 
     <p>Output:</p>
+    <button on:click={recalc}>Recalculate</button>
     <p>Length: {Math.round(output.length)} m</p>
     <p>{numUrbanAreas} urban OAs, {output.ruc.length - numUrbanAreas} rural</p>
   </div>
