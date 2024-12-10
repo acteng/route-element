@@ -39,10 +39,12 @@
   interface Output {
     length: number;
     ruc: Feature<Polygon, { RUC11: string }>[];
+    pop_density: Feature<Polygon, { pop_density: number }>[];
   }
   let output: Output = {
     length: 0,
     ruc: [],
+    pop_density: [],
   };
   $: if (loaded && line && output.length == 0) {
     recalc();
@@ -51,6 +53,8 @@
   $: numUrbanAreas = output.ruc.filter((f) =>
     f.properties.RUC11.startsWith("Urban"),
   ).length;
+
+  let show: "ruc" | "pop_density" = "ruc";
 
   function parseLines(map: Map | undefined, inputGj: string) {
     if (!map) {
@@ -81,7 +85,7 @@
   ): FeatureCollection {
     let gj: FeatureCollection = {
       type: "FeatureCollection" as const,
-      features: output.ruc,
+      features: [...output.ruc, ...output.pop_density],
     };
     if (line) {
       gj.features.push(line);
@@ -107,6 +111,18 @@
 
     <p>Output:</p>
     <button on:click={recalc}>Recalculate</button>
+
+    <fieldset>
+      <label>
+        <input type="radio" value="ruc" bind:group={show} />
+         RUC
+      </label>
+      <label>
+        <input type="radio" value="pop_density" bind:group={show} />
+         Pop density
+      </label>
+    </fieldset>
+
     <p>Length: {Math.round(output.length)} m</p>
     <p>{numUrbanAreas} urban OAs, {output.ruc.length - numUrbanAreas} rural</p>
   </div>
@@ -131,8 +147,11 @@
         />
 
         <FillLayer
-          filter={isPolygon}
+          filter={["all", isPolygon, ["has", "RUC11"]]}
           manageHoverState
+          layout={{
+            visibility: show == "ruc" ? "visible" : "none",
+          }}
           paint={{
             "fill-color": [
               "case",
@@ -144,6 +163,22 @@
           }}
         >
           <Popup openOn="hover" let:props>{props.RUC11}</Popup>
+        </FillLayer>
+
+        <FillLayer
+          filter={["all", isPolygon, ["has", "pop_density"]]}
+          manageHoverState
+          layout={{
+            visibility: show == "pop_density" ? "visible" : "none",
+          }}
+          paint={{
+            "fill-color": "blue",
+            "fill-opacity": hoverStateFilter(0.3, 0.5),
+          }}
+        >
+          <Popup openOn="hover" let:props>
+            {props.pop_density} people / square km
+          </Popup>
         </FillLayer>
       </GeoJSON>
     </MapLibre>

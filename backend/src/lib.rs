@@ -17,18 +17,13 @@ pub async fn eval_route(input: JsValue) -> Result<String, JsValue> {
     let f: Feature = serde_wasm_bindgen::from_value(input)?;
     let line: LineString = f.try_into().map_err(err_to_js)?;
 
-    let bbox = line.bounding_rect().unwrap();
-    let url = "https://assets.od2net.org/route-element/ruc.fgb";
-    let mut polygons = read_nearby_polygons(bbox, url).await.map_err(err_to_js)?;
-    polygons.retain(|(p, _)| p.intersects(&line));
+    let ruc = read_ruc(&line).await.map_err(err_to_js)?;
+    let pop_density = read_pop_density(&line).await.map_err(err_to_js)?;
 
     Ok(serde_json::json!({
         "length": line.length::<Haversine>(),
-        "ruc": polygons.iter().map(|(p, ruc11)| {
-            let mut f = Feature::from(Geometry::from(p));
-            f.set_property("RUC11", ruc11.clone());
-            f
-        }).collect::<Vec<_>>(),
+        "ruc": ruc,
+        "pop_density": pop_density,
     })
     .to_string())
 }
@@ -45,8 +40,11 @@ fn err_to_js<E: std::fmt::Display>(err: E) -> JsValue {
     JsValue::from_str(&err.to_string())
 }
 
-// TODO and one fixed prop; generalize htis
-async fn read_nearby_polygons(bbox: Rect, url: &str) -> Result<Vec<(Polygon, String)>> {
+async fn read_nearby_polygons<T: geozero::PropertyReadType>(
+    bbox: Rect,
+    url: &str,
+    key: &str,
+) -> Result<Vec<(Polygon, T)>> {
     let mut fgb = HttpFgbReader::open(url)
         .await?
         .select_bbox(bbox.min().x, bbox.min().y, bbox.max().x, bbox.max().y)
@@ -55,7 +53,7 @@ async fn read_nearby_polygons(bbox: Rect, url: &str) -> Result<Vec<(Polygon, Str
     let mut polygons = Vec::new();
     while let Some(feature) = fgb.next().await? {
         let polygon = get_polygon(feature)?;
-        let value: String = feature.property("RUC11")?;
+        let value: T = feature.property(key)?;
         polygons.push((polygon, value));
     }
     Ok(polygons)
@@ -68,4 +66,34 @@ fn get_polygon(f: &FgbFeature) -> Result<Polygon> {
         geo::Geometry::Polygon(p) => Ok(p),
         _ => bail!("Wrong type in fgb"),
     }
+}
+
+async fn read_ruc(line: &LineString) -> Result<Vec<Feature>> {
+    let bbox = line.bounding_rect().unwrap();
+    let url = "https://assets.od2net.org/route-element/ruc.fgb";
+    let mut polygons = read_nearby_polygons::<String>(bbox, url, "RUC11").await?;
+    polygons.retain(|(p, _)| p.intersects(line));
+    Ok(polygons
+        .into_iter()
+        .map(|(p, ruc11)| {
+            let mut f = Feature::from(Geometry::from(&p));
+            f.set_property("RUC11", ruc11);
+            f
+        })
+        .collect())
+}
+
+async fn read_pop_density(line: &LineString) -> Result<Vec<Feature>> {
+    let bbox = line.bounding_rect().unwrap();
+    let url = "https://assets.od2net.org/route-element/census.fgb";
+    let mut polygons = read_nearby_polygons::<i32>(bbox, url, "population_density").await?;
+    polygons.retain(|(p, _)| p.intersects(line));
+    Ok(polygons
+        .into_iter()
+        .map(|(p, pop_density)| {
+            let mut f = Feature::from(Geometry::from(&p));
+            f.set_property("pop_density", pop_density);
+            f
+        })
+        .collect())
 }
