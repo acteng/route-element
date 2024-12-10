@@ -14,6 +14,7 @@
   } from "svelte-maplibre";
   import { exampleGj } from "./examples";
   import { zoomTo } from "./common";
+  import EditLine from "./EditLine.svelte";
   import type {
     Feature,
     Polygon,
@@ -116,6 +117,10 @@
       standardControls
       bind:map
     >
+      {#if line}
+        <EditLine bind:f={line} />
+      {/if}
+
       <GeoJSON data={makeGj(line, output)} generateId>
         <LineLayer
           filter={isLine}
