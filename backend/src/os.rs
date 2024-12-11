@@ -1,11 +1,16 @@
-use anyhow::{Context, Result};
+use std::collections::HashMap;
+
+use anyhow::{bail, Context, Result};
 use flatgeobuf::{FeatureProperties, FgbFeature};
-use geo::{BoundingRect, LineString, Point};
+use geo::{BoundingRect, Haversine, Length, LineString, Point};
+use log::info;
+use petgraph::graphmap::UnGraphMap;
+use rstar::{primitives::GeomWithData, RTree};
 use serde::Serialize;
 
 use crate::fgb;
 
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 pub struct Link {
     #[serde(serialize_with = "geojson::ser::serialize_geometry")]
     geometry: LineString,
@@ -15,7 +20,7 @@ pub struct Link {
     end_node: String,
 }
 
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 pub struct Node {
     #[serde(serialize_with = "geojson::ser::serialize_geometry")]
     geometry: Point,
@@ -35,7 +40,12 @@ pub async fn read_os_network(line: &LineString, base_url: &str) -> Result<(Vec<N
         .await
         .context("links")?;
 
-    Ok((nodes, links))
+    let Some((path_nodes, path_links)) = map_match(&nodes, &links, line) else {
+        return Ok((nodes, links));
+        //bail!("No matching path");
+    };
+
+    Ok((path_nodes, path_links))
 }
 
 fn read_link(f: &FgbFeature) -> Result<Link> {
@@ -53,4 +63,53 @@ fn read_node(f: &FgbFeature) -> Result<Node> {
         geometry: fgb::get_point(f)?,
         id: f.property("id")?,
     })
+}
+
+/// Returns just the nodes and links best forming the path
+fn map_match(
+    nodes: &Vec<Node>,
+    links: &Vec<Link>,
+    line: &LineString,
+) -> Option<(Vec<Node>, Vec<Link>)> {
+    let closest_node = RTree::bulk_load(
+        nodes
+            .iter()
+            .map(|node| GeomWithData::new(node.geometry, node.id.clone()))
+            .collect(),
+    );
+    let start = &closest_node
+        .nearest_neighbor(&line.points().next().unwrap())?
+        .data;
+    let end = &closest_node
+        .nearest_neighbor(&line.points().last().unwrap())?
+        .data;
+    info!("Path from {start} to {end}");
+
+    // Node IDs are strings, the edge weight is the index into links
+    let mut graph: UnGraphMap<&String, usize> = UnGraphMap::new();
+    for (idx, link) in links.iter().enumerate() {
+        graph.add_edge(&link.start_node, &link.end_node, idx);
+    }
+
+    let node_lookup: HashMap<String, &Node> =
+        HashMap::from_iter(nodes.iter().map(|node| (node.id.clone(), node)));
+
+    let (_, path) = petgraph::algo::astar(
+        &graph,
+        start,
+        |n| n == end,
+        |(_, _, idx)| links[*idx].geometry.length::<Haversine>(),
+        |_| 0.0,
+    )?;
+
+    let mut path_nodes = Vec::new();
+    let mut path_links = Vec::new();
+    for n in &path {
+        path_nodes.push(node_lookup[*n].clone());
+    }
+    for pair in path.windows(2) {
+        path_links.push(links[*graph.edge_weight(pair[0], pair[1]).unwrap()].clone());
+    }
+
+    Some((path_nodes, path_links))
 }

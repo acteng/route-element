@@ -128,6 +128,7 @@
       <input type="checkbox" bind:checked={showInput} />
       Show input route
     </label>
+    <br />
 
     <fieldset>
       <label>
@@ -208,19 +209,6 @@
         </FillLayer>
       </GeoJSON>
 
-      <GeoJSON data={output.os_nodes}>
-        <CircleLayer
-          manageHoverState
-          layout={{
-            visibility: show == "os_network" ? "visible" : "none",
-          }}
-          paint={{
-            "circle-color": "green",
-            "circle-radius": hoverStateFilter(5, 8),
-          }}
-        />
-      </GeoJSON>
-
       <GeoJSON data={output.os_links}>
         <LineLayer
           layout={{
@@ -235,6 +223,23 @@
             {props.road_classification}
           </Popup>
         </LineLayer>
+      </GeoJSON>
+
+      <GeoJSON data={output.os_nodes}>
+        <CircleLayer
+          manageHoverState
+          layout={{
+            visibility: show == "os_network" ? "visible" : "none",
+          }}
+          paint={{
+            "circle-color": "green",
+            "circle-radius": hoverStateFilter(5, 8),
+          }}
+        >
+          <Popup openOn="hover" let:props>
+            {props.id}
+          </Popup>
+        </CircleLayer>
       </GeoJSON>
     </MapLibre>
   </div>
