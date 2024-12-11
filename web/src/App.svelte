@@ -2,7 +2,7 @@
   import "@picocss/pico/css/pico.jade.min.css";
   import init, { evalRoute } from "backend";
   import { Layout } from "svelte-utils/two_column_layout";
-  import { Popup, isLine, isPolygon, isPoint } from "svelte-utils/map";
+  import { emptyGeojson, Popup } from "svelte-utils/map";
   import type { Map } from "maplibre-gl";
   import { onMount } from "svelte";
   import {
@@ -38,15 +38,15 @@
 
   let inputGj = JSON.stringify(exampleGj);
 
-  let line: Feature<LineString, { kind: "input" }> | undefined;
+  let line: Feature<LineString> | undefined;
   $: parseLines(map, inputGj);
 
   interface Output {
     length: number;
-    ruc: Feature<Polygon, { ruc11: string }>[];
-    pop_density: Feature<Polygon, { pop_density: number }>[];
-    os_nodes: Feature<Point, { id: string }>[];
-    os_links: Feature<
+    ruc: FeatureCollection<Polygon, { ruc11: string }>;
+    pop_density: FeatureCollection<Polygon, { pop_density: number }>;
+    os_nodes: FeatureCollection<Point, { id: string }>;
+    os_links: FeatureCollection<
       LineString,
       {
         id: string;
@@ -54,20 +54,20 @@
         start_node: string;
         end_node: string;
       }
-    >[];
+    >;
   }
   let output: Output = {
     length: 0,
-    ruc: [],
-    pop_density: [],
-    os_nodes: [],
-    os_links: [],
+    ruc: emptyGeojson(),
+    pop_density: emptyGeojson(),
+    os_nodes: emptyGeojson(),
+    os_links: emptyGeojson(),
   };
   $: if (loaded && line && output.length == 0) {
     recalc();
   }
 
-  $: numUrbanAreas = output.ruc.filter((f) =>
+  $: numUrbanAreas = output.ruc.features.filter((f) =>
     f.properties.ruc11.startsWith("Urban"),
   ).length;
 
@@ -91,41 +91,24 @@
       }
 
       line = gj.features[0];
-      line!.properties = { kind: "input" };
       zoomTo(map, gj);
     } catch (err) {
       window.alert(err);
     }
   }
 
-  function makeGj(
-    line: Feature<LineString, { kind: "input" }> | undefined,
-    output: Output,
-  ): FeatureCollection {
-    let gj: FeatureCollection = {
-      type: "FeatureCollection" as const,
-      features: [
-        ...output.ruc,
-        ...output.pop_density,
-        ...output.os_nodes,
-        ...output.os_links,
-      ],
-    };
-    if (line) {
-      gj.features.push(line);
-    }
-    return gj;
-  }
-
   async function recalc() {
     if (loaded && line) {
       try {
-        output = JSON.parse(await evalRoute(line, baseURL));
         // TODO Hacky
-        output.ruc = JSON.parse(output.ruc).features;
-        output.pop_density = JSON.parse(output.pop_density).features;
-        output.os_nodes = JSON.parse(output.os_nodes).features;
-        output.os_links = JSON.parse(output.os_links).features;
+        let x = JSON.parse(await evalRoute(line, baseURL));
+        output = {
+          length: x.length,
+          ruc: JSON.parse(x.ruc),
+          pop_density: JSON.parse(x.pop_density),
+          os_nodes: JSON.parse(x.os_nodes),
+          os_links: JSON.parse(x.os_links),
+        };
       } catch (err) {
         window.alert(err);
       }
@@ -162,7 +145,9 @@
     </fieldset>
 
     <p>Length: {Math.round(output.length)} m</p>
-    <p>{numUrbanAreas} urban OAs, {output.ruc.length - numUrbanAreas} rural</p>
+    <p>
+      {numUrbanAreas} urban OAs, {output.ruc.features.length - numUrbanAreas} rural
+    </p>
   </div>
 
   <div slot="main" style="position:relative; width: 100%; height: 100vh;">
@@ -173,22 +158,21 @@
     >
       {#if line && showInput}
         <EditLine bind:f={line} />
+        <GeoJSON data={line}>
+          <LineLayer
+            layout={{
+              visibility: showInput ? "visible" : "none",
+            }}
+            paint={{
+              "line-width": 5,
+              "line-color": "red",
+            }}
+          />
+        </GeoJSON>
       {/if}
 
-      <GeoJSON data={makeGj(line, output)} generateId>
-        <LineLayer
-          filter={["==", ["get", "kind"], "input"]}
-          layout={{
-            visibility: showInput ? "visible" : "none",
-          }}
-          paint={{
-            "line-width": 5,
-            "line-color": "red",
-          }}
-        />
-
+      <GeoJSON data={output.ruc}>
         <FillLayer
-          filter={["all", isPolygon, ["has", "ruc11"]]}
           manageHoverState
           layout={{
             visibility: show == "ruc" ? "visible" : "none",
@@ -205,9 +189,10 @@
         >
           <Popup openOn="hover" let:props>{props.ruc11}</Popup>
         </FillLayer>
+      </GeoJSON>
 
+      <GeoJSON data={output.pop_density}>
         <FillLayer
-          filter={["all", isPolygon, ["has", "pop_density"]]}
           manageHoverState
           layout={{
             visibility: show == "pop_density" ? "visible" : "none",
@@ -221,9 +206,10 @@
             {props.pop_density} people / square km
           </Popup>
         </FillLayer>
+      </GeoJSON>
 
+      <GeoJSON data={output.os_nodes}>
         <CircleLayer
-          filter={isPoint}
           manageHoverState
           layout={{
             visibility: show == "os_network" ? "visible" : "none",
@@ -233,9 +219,10 @@
             "circle-radius": hoverStateFilter(5, 8),
           }}
         />
+      </GeoJSON>
 
+      <GeoJSON data={output.os_links}>
         <LineLayer
-          filter={["all", isLine, ["has", "road_classification"]]}
           layout={{
             visibility: show == "os_network" ? "visible" : "none",
           }}
