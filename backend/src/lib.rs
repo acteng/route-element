@@ -1,8 +1,10 @@
 use std::sync::Once;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
+use flatgeobuf::FeatureProperties;
 use geo::{BoundingRect, Haversine, Intersects, Length, LineString, MultiPolygon};
-use geojson::{Feature, Geometry};
+use geojson::Feature;
+use serde::Serialize;
 
 use wasm_bindgen::prelude::*;
 
@@ -29,10 +31,10 @@ pub async fn eval_route(input: JsValue, base_url: String) -> Result<String, JsVa
 
     Ok(serde_json::json!({
         "length": line.length::<Haversine>(),
-        "ruc": ruc,
-        "pop_density": pop_density,
-        "os_nodes": os_nodes,
-        "os_links": os_links,
+        "ruc": geojson::ser::to_feature_collection_string(&ruc).unwrap(),
+        "pop_density": geojson::ser::to_feature_collection_string(&pop_density).unwrap(),
+        "os_nodes": geojson::ser::to_feature_collection_string(&os_nodes).unwrap(),
+        "os_links": geojson::ser::to_feature_collection_string(&os_links).unwrap(),
     })
     .to_string())
 }
@@ -49,34 +51,46 @@ fn err_to_js<E: std::fmt::Display>(err: E) -> JsValue {
     JsValue::from_str(&err.to_string())
 }
 
-async fn read_ruc(line: &LineString, base_url: &str) -> Result<Vec<Feature>> {
-    let bbox = line.bounding_rect().unwrap();
-    let url = format!("{base_url}/ruc.fgb");
-    let mut polygons: Vec<(MultiPolygon, String)> =
-        fgb::read_fgb(bbox, &url, fgb::get_multi_polygon, "RUC11").await?;
-    polygons.retain(|(p, _)| p.intersects(line));
-    Ok(polygons
-        .into_iter()
-        .map(|(p, ruc11)| {
-            let mut f = Feature::from(Geometry::from(&p));
-            f.set_property("RUC11", ruc11);
-            f
-        })
-        .collect())
+#[derive(Serialize)]
+pub struct RUC {
+    #[serde(serialize_with = "geojson::ser::serialize_geometry")]
+    geometry: MultiPolygon,
+    ruc11: String,
 }
 
-async fn read_pop_density(line: &LineString, base_url: &str) -> Result<Vec<Feature>> {
+#[derive(Serialize)]
+pub struct PopDensity {
+    #[serde(serialize_with = "geojson::ser::serialize_geometry")]
+    geometry: MultiPolygon,
+    pop_density: i32,
+}
+
+async fn read_ruc(line: &LineString, base_url: &str) -> Result<Vec<RUC>> {
+    let bbox = line.bounding_rect().unwrap();
+    let url = format!("{base_url}/ruc.fgb");
+    let mut polygons = fgb::read_fgb(bbox, &url, |f| {
+        Ok(RUC {
+            geometry: fgb::get_multi_polygon(f)?,
+            ruc11: f.property("RUC11")?,
+        })
+    })
+    .await
+    .context("ruc")?;
+    polygons.retain(|x| x.geometry.intersects(line));
+    Ok(polygons)
+}
+
+async fn read_pop_density(line: &LineString, base_url: &str) -> Result<Vec<PopDensity>> {
     let bbox = line.bounding_rect().unwrap();
     let url = format!("{base_url}/census.fgb");
-    let mut polygons: Vec<(MultiPolygon, i32)> =
-        fgb::read_fgb(bbox, &url, fgb::get_multi_polygon, "population_density").await?;
-    polygons.retain(|(p, _)| p.intersects(line));
-    Ok(polygons
-        .into_iter()
-        .map(|(p, pop_density)| {
-            let mut f = Feature::from(Geometry::from(&p));
-            f.set_property("pop_density", pop_density);
-            f
+    let mut polygons = fgb::read_fgb(bbox, &url, |f| {
+        Ok(PopDensity {
+            geometry: fgb::get_multi_polygon(f)?,
+            pop_density: f.property("population_density")?,
         })
-        .collect())
+    })
+    .await
+    .context("pop_density")?;
+    polygons.retain(|x| x.geometry.intersects(line));
+    Ok(polygons)
 }

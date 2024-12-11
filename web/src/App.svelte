@@ -24,8 +24,8 @@
     LineString,
   } from "geojson";
 
-  let baseURL = "https://assets.od2net.org/route-element";
-  //let baseURL = "http://localhost:5173/route-element/route-element";
+  //let baseURL = "https://assets.od2net.org/route-element";
+  let baseURL = "http://localhost:5173/route-element/route-element";
 
   let maptilerApiKey = "MZEJTanw3WpxRvt7qDfo";
   let map: Map | undefined;
@@ -43,10 +43,18 @@
 
   interface Output {
     length: number;
-    ruc: Feature<Polygon, { RUC11: string }>[];
+    ruc: Feature<Polygon, { ruc11: string }>[];
     pop_density: Feature<Polygon, { pop_density: number }>[];
     os_nodes: Feature<Point, { id: string }>[];
-    os_links: Feature<LineString, { road_id: string }>[];
+    os_links: Feature<
+      LineString,
+      {
+        id: string;
+        road_classification: string;
+        start_node: string;
+        end_node: string;
+      }
+    >[];
   }
   let output: Output = {
     length: 0,
@@ -60,9 +68,10 @@
   }
 
   $: numUrbanAreas = output.ruc.filter((f) =>
-    f.properties.RUC11.startsWith("Urban"),
+    f.properties.ruc11.startsWith("Urban"),
   ).length;
 
+  let showInput = true;
   let show: "ruc" | "pop_density" | "os_network" = "ruc";
 
   function parseLines(map: Map | undefined, inputGj: string) {
@@ -112,6 +121,11 @@
     if (loaded && line) {
       try {
         output = JSON.parse(await evalRoute(line, baseURL));
+        // TODO Hacky
+        output.ruc = JSON.parse(output.ruc).features;
+        output.pop_density = JSON.parse(output.pop_density).features;
+        output.os_nodes = JSON.parse(output.os_nodes).features;
+        output.os_links = JSON.parse(output.os_links).features;
       } catch (err) {
         window.alert(err);
       }
@@ -126,6 +140,11 @@
 
     <p>Output:</p>
     <button on:click={recalc}>Recalculate</button>
+
+    <label>
+      <input type="checkbox" bind:checked={showInput} />
+      Show input route
+    </label>
 
     <fieldset>
       <label>
@@ -152,13 +171,16 @@
       standardControls
       bind:map
     >
-      {#if line}
+      {#if line && showInput}
         <EditLine bind:f={line} />
       {/if}
 
       <GeoJSON data={makeGj(line, output)} generateId>
         <LineLayer
           filter={["==", ["get", "kind"], "input"]}
+          layout={{
+            visibility: showInput ? "visible" : "none",
+          }}
           paint={{
             "line-width": 5,
             "line-color": "red",
@@ -166,7 +188,7 @@
         />
 
         <FillLayer
-          filter={["all", isPolygon, ["has", "RUC11"]]}
+          filter={["all", isPolygon, ["has", "ruc11"]]}
           manageHoverState
           layout={{
             visibility: show == "ruc" ? "visible" : "none",
@@ -174,14 +196,14 @@
           paint={{
             "fill-color": [
               "case",
-              ["in", "Urban", ["get", "RUC11"]],
+              ["in", "Urban", ["get", "ruc11"]],
               "orange",
               "green",
             ],
             "fill-opacity": hoverStateFilter(0.3, 0.5),
           }}
         >
-          <Popup openOn="hover" let:props>{props.RUC11}</Popup>
+          <Popup openOn="hover" let:props>{props.ruc11}</Popup>
         </FillLayer>
 
         <FillLayer

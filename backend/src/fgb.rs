@@ -1,13 +1,12 @@
 use anyhow::{bail, Result};
-use flatgeobuf::{FeatureProperties, FgbFeature, GeozeroGeometry, HttpFgbReader};
+use flatgeobuf::{FgbFeature, GeozeroGeometry, HttpFgbReader};
 use geo::{LineString, MultiPolygon, Point, Rect};
 
-pub async fn read_fgb<Geom, F: Fn(&FgbFeature) -> Result<Geom>, T: geozero::PropertyReadType>(
+pub async fn read_fgb<T, F: Fn(&FgbFeature) -> Result<T>>(
     bbox: Rect,
     url: &str,
-    get_geom: F,
-    key: &str,
-) -> Result<Vec<(Geom, T)>> {
+    extract: F,
+) -> Result<Vec<T>> {
     let mut fgb = HttpFgbReader::open(url)
         .await?
         .select_bbox(bbox.min().x, bbox.min().y, bbox.max().x, bbox.max().y)
@@ -15,9 +14,7 @@ pub async fn read_fgb<Geom, F: Fn(&FgbFeature) -> Result<Geom>, T: geozero::Prop
 
     let mut results = Vec::new();
     while let Some(feature) = fgb.next().await? {
-        let geom = get_geom(feature)?;
-        let value: T = feature.property(key)?;
-        results.push((geom, value));
+        results.push(extract(feature)?);
     }
     Ok(results)
 }
