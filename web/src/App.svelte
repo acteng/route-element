@@ -12,8 +12,8 @@
   import OutputLayers from "./OutputLayers.svelte";
   import type { FeatureCollection, LineString } from "geojson";
 
-  //let baseURL = "https://assets.od2net.org/route-element";
-  let baseURL = "http://localhost:5173/route-element/route-element";
+  let baseURL = "https://assets.od2net.org/route-element";
+  //let baseURL = "http://localhost:5173/route-element/route-element";
 
   let maptilerApiKey = "MZEJTanw3WpxRvt7qDfo";
   let map: Map | undefined;
@@ -59,6 +59,8 @@
       }
       inputGj = gj;
       current = 0;
+      // TODO Bit of a hack to trigger reactivity
+      output.length = 0;
     } catch (err) {
       window.alert(err);
     }
@@ -92,11 +94,22 @@
       .map((f) => f.properties.road_classification)
       .join(", ");
   }
+
+  let fileInput: HTMLInputElement;
+  async function loadFile(e: Event) {
+    cleanInput(await fileInput.files![0].text());
+  }
 </script>
 
 <Layout>
   <div slot="left">
     <p>Input:</p>
+
+    <label>
+      Load a GeoJSON file
+      <input bind:this={fileInput} on:change={loadFile} type="file" />
+    </label>
+
     {#if current != null}
       <button
         on:click={() => {
