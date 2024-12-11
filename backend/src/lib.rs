@@ -1,12 +1,12 @@
 use std::sync::Once;
 
-use anyhow::{bail, Result};
-use flatgeobuf::{FeatureProperties, FgbFeature, GeozeroGeometry, HttpFgbReader};
-use geo::{BoundingRect, Haversine, Intersects, Length, LineString, MultiPolygon, Rect};
+use anyhow::Result;
+use geo::{BoundingRect, Haversine, Intersects, Length, LineString, MultiPolygon};
 use geojson::{Feature, Geometry};
 
 use wasm_bindgen::prelude::*;
 
+mod fgb;
 mod os;
 
 static START: Once = Once::new();
@@ -23,7 +23,9 @@ pub async fn eval_route(input: JsValue, base_url: String) -> Result<String, JsVa
     let pop_density = read_pop_density(&line, &base_url)
         .await
         .map_err(err_to_js)?;
-    let os_network = os::read_os_network(&line, &base_url).await.map_err(err_to_js)?;
+    let os_network = os::read_os_network(&line, &base_url)
+        .await
+        .map_err(err_to_js)?;
 
     Ok(serde_json::json!({
         "length": line.length::<Haversine>(),
@@ -46,39 +48,11 @@ fn err_to_js<E: std::fmt::Display>(err: E) -> JsValue {
     JsValue::from_str(&err.to_string())
 }
 
-async fn read_nearby_polygons<T: geozero::PropertyReadType>(
-    bbox: Rect,
-    url: &str,
-    key: &str,
-) -> Result<Vec<(MultiPolygon, T)>> {
-    let mut fgb = HttpFgbReader::open(url)
-        .await?
-        .select_bbox(bbox.min().x, bbox.min().y, bbox.max().x, bbox.max().y)
-        .await?;
-
-    let mut polygons = Vec::new();
-    while let Some(feature) = fgb.next().await? {
-        let polygon = get_multi_polygon(feature)?;
-        let value: T = feature.property(key)?;
-        polygons.push((polygon, value));
-    }
-    Ok(polygons)
-}
-
-fn get_multi_polygon(f: &FgbFeature) -> Result<MultiPolygon> {
-    let mut p = geozero::geo_types::GeoWriter::new();
-    f.process_geom(&mut p)?;
-    match p.take_geometry().unwrap() {
-        geo::Geometry::Polygon(p) => Ok(MultiPolygon(vec![p])),
-        geo::Geometry::MultiPolygon(mp) => Ok(mp),
-        _ => bail!("Wrong type in fgb"),
-    }
-}
-
 async fn read_ruc(line: &LineString, base_url: &str) -> Result<Vec<Feature>> {
     let bbox = line.bounding_rect().unwrap();
     let url = format!("{base_url}/ruc.fgb");
-    let mut polygons = read_nearby_polygons::<String>(bbox, &url, "RUC11").await?;
+    let mut polygons: Vec<(MultiPolygon, String)> =
+        fgb::read_fgb(bbox, &url, fgb::get_multi_polygon, "RUC11").await?;
     polygons.retain(|(p, _)| p.intersects(line));
     Ok(polygons
         .into_iter()
@@ -93,7 +67,8 @@ async fn read_ruc(line: &LineString, base_url: &str) -> Result<Vec<Feature>> {
 async fn read_pop_density(line: &LineString, base_url: &str) -> Result<Vec<Feature>> {
     let bbox = line.bounding_rect().unwrap();
     let url = format!("{base_url}/census.fgb");
-    let mut polygons = read_nearby_polygons::<i32>(bbox, &url, "population_density").await?;
+    let mut polygons: Vec<(MultiPolygon, i32)> =
+        fgb::read_fgb(bbox, &url, fgb::get_multi_polygon, "population_density").await?;
     polygons.retain(|(p, _)| p.intersects(line));
     Ok(polygons
         .into_iter()
