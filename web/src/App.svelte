@@ -22,6 +22,9 @@
     LineString,
   } from "geojson";
 
+  let baseURL = "https://assets.od2net.org/route-element";
+  //let baseURL = "http://localhost:5173/route-element/route-element";
+
   let maptilerApiKey = "MZEJTanw3WpxRvt7qDfo";
   let map: Map | undefined;
   let loaded = false;
@@ -96,7 +99,7 @@
   async function recalc() {
     if (loaded && line) {
       try {
-        output = JSON.parse(await evalRoute(line));
+        output = JSON.parse(await evalRoute(line, baseURL));
       } catch (err) {
         window.alert(err);
       }

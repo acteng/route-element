@@ -11,14 +11,16 @@ static START: Once = Once::new();
 
 /// Takes a GeoJSON `Feature<LineString>` and returns a JSON object with some info
 #[wasm_bindgen(js_name = evalRoute)]
-pub async fn eval_route(input: JsValue) -> Result<String, JsValue> {
+pub async fn eval_route(input: JsValue, base_url: String) -> Result<String, JsValue> {
     setup();
 
     let f: Feature = serde_wasm_bindgen::from_value(input)?;
     let line: LineString = f.try_into().map_err(err_to_js)?;
 
-    let ruc = read_ruc(&line).await.map_err(err_to_js)?;
-    let pop_density = read_pop_density(&line).await.map_err(err_to_js)?;
+    let ruc = read_ruc(&line, &base_url).await.map_err(err_to_js)?;
+    let pop_density = read_pop_density(&line, &base_url)
+        .await
+        .map_err(err_to_js)?;
 
     Ok(serde_json::json!({
         "length": line.length::<Haversine>(),
@@ -69,10 +71,10 @@ fn get_multi_polygon(f: &FgbFeature) -> Result<MultiPolygon> {
     }
 }
 
-async fn read_ruc(line: &LineString) -> Result<Vec<Feature>> {
+async fn read_ruc(line: &LineString, base_url: &str) -> Result<Vec<Feature>> {
     let bbox = line.bounding_rect().unwrap();
-    let url = "https://assets.od2net.org/route-element/ruc.fgb";
-    let mut polygons = read_nearby_polygons::<String>(bbox, url, "RUC11").await?;
+    let url = format!("{base_url}/ruc.fgb");
+    let mut polygons = read_nearby_polygons::<String>(bbox, &url, "RUC11").await?;
     polygons.retain(|(p, _)| p.intersects(line));
     Ok(polygons
         .into_iter()
@@ -84,10 +86,10 @@ async fn read_ruc(line: &LineString) -> Result<Vec<Feature>> {
         .collect())
 }
 
-async fn read_pop_density(line: &LineString) -> Result<Vec<Feature>> {
+async fn read_pop_density(line: &LineString, base_url: &str) -> Result<Vec<Feature>> {
     let bbox = line.bounding_rect().unwrap();
-    let url = "https://assets.od2net.org/route-element/census.fgb";
-    let mut polygons = read_nearby_polygons::<i32>(bbox, url, "population_density").await?;
+    let url = format!("{base_url}/census.fgb");
+    let mut polygons = read_nearby_polygons::<i32>(bbox, &url, "population_density").await?;
     polygons.retain(|(p, _)| p.intersects(line));
     Ok(polygons
         .into_iter()
