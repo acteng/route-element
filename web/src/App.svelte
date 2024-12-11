@@ -114,6 +114,12 @@
       }
     }
   }
+
+  function summarizeLinks(output: Output): string {
+    return output.os_links.features
+      .map((f) => f.properties.road_classification)
+      .join(", ");
+  }
 </script>
 
 <Layout>
@@ -149,6 +155,11 @@
     <p>
       {numUrbanAreas} urban OAs, {output.ruc.features.length - numUrbanAreas} rural
     </p>
+    <p>
+      {output.os_links.features.length} links, {output.os_nodes.features.length}
+      nodes
+    </p>
+    <p>{summarizeLinks(output)}</p>
   </div>
 
   <div slot="main" style="position:relative; width: 100%; height: 100vh;">

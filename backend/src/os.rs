@@ -2,8 +2,7 @@ use std::collections::HashMap;
 
 use anyhow::{bail, Context, Result};
 use flatgeobuf::{FeatureProperties, FgbFeature};
-use geo::{BoundingRect, Haversine, Length, LineString, Point};
-use log::info;
+use geo::{BoundingRect, Coord, Haversine, Length, LineString, Point};
 use petgraph::graphmap::UnGraphMap;
 use rstar::{primitives::GeomWithData, RTree};
 use serde::Serialize;
@@ -29,7 +28,20 @@ pub struct Node {
 
 /// Returns OS links and nodes in the vicinity of the input
 pub async fn read_os_network(line: &LineString, base_url: &str) -> Result<(Vec<Node>, Vec<Link>)> {
-    let bbox = line.bounding_rect().unwrap();
+    let mut bbox = line.bounding_rect().unwrap();
+
+    // Expand the bbox, so we're more likely to have a nice connected graph around the input
+    // This horrible hack on WGS84 coordinates work well enough for small inputs
+    let w = bbox.width();
+    let h = bbox.height();
+    bbox.set_min(Coord {
+        x: bbox.min().x - w,
+        y: bbox.min().y - h,
+    });
+    bbox.set_max(Coord {
+        x: bbox.max().x + w,
+        y: bbox.max().y + h,
+    });
 
     let url1 = format!("{base_url}/os_nodes.fgb");
     let url2 = format!("{base_url}/os_links.fgb");
@@ -41,10 +53,10 @@ pub async fn read_os_network(line: &LineString, base_url: &str) -> Result<(Vec<N
         .context("links")?;
 
     let Some((path_nodes, path_links)) = map_match(&nodes, &links, line) else {
-        return Ok((nodes, links));
-        //bail!("No matching path");
+        bail!("No matching path");
     };
 
+    //Ok((nodes, links))
     Ok((path_nodes, path_links))
 }
 
@@ -83,7 +95,6 @@ fn map_match(
     let end = &closest_node
         .nearest_neighbor(&line.points().last().unwrap())?
         .data;
-    info!("Path from {start} to {end}");
 
     // Node IDs are strings, the edge weight is the index into links
     let mut graph: UnGraphMap<&String, usize> = UnGraphMap::new();
