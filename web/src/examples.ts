@@ -195,47 +195,23 @@ export let exampleGj = {
         ],
         type: "LineString",
       },
-      properties: {
-        length_meters: 3519.88442518006,
-        waypoints: [
-          {
-            lat: 51.73336,
-            lon: 0.478565,
-            snapped: true,
-          },
-          {
-            lat: 51.743161,
-            lon: 0.496217,
-            snapped: true,
-          },
-          {
-            lat: 51.753745,
-            lon: 0.490961,
-            snapped: true,
-          },
-        ],
-        name: "Route from ??? to ???",
-        description: "",
-        v2: {
-          intervention_type: "",
-          intended_uses: "",
-          work_type: "",
-        },
-        scheme_reference: "40b859ba-1dc6-4759-a263-8ca6a55af115",
-        intervention_type: "route",
-      },
+      properties: {},
       type: "Feature",
-      id: 1,
+    },
+    {
+      type: "Feature",
+      properties: {},
+      geometry: {
+        coordinates: [
+          [-0.8876338067753693, 52.23771961572791],
+          [-0.8722240821606704, 52.239055374398475],
+          [-0.8741210869435747, 52.24282954959838],
+          [-0.8684328688797791, 52.248692578424254],
+          [-0.8698547643610652, 52.25223365618476],
+          [-0.8661103062913185, 52.25310368912446],
+        ],
+        type: "LineString",
+      },
     },
   ],
-  schemes: {
-    "40b859ba-1dc6-4759-a263-8ca6a55af115": {
-      scheme_reference: "40b859ba-1dc6-4759-a263-8ca6a55af115",
-      color: "#e41a1c",
-      v2: {},
-      scheme_name: "x",
-    },
-  },
-  authority: "LAD_Chelmsford",
-  origin: "atip-v2",
 };

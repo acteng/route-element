@@ -2,27 +2,15 @@
   import "@picocss/pico/css/pico.jade.min.css";
   import init, { evalRoute } from "backend";
   import { Layout } from "svelte-utils/two_column_layout";
-  import { emptyGeojson, Popup } from "svelte-utils/map";
+  import { emptyGeojson } from "svelte-utils/map";
   import type { Map } from "maplibre-gl";
   import { onMount } from "svelte";
-  import {
-    MapLibre,
-    GeoJSON,
-    LineLayer,
-    FillLayer,
-    hoverStateFilter,
-    CircleLayer,
-  } from "svelte-maplibre";
+  import { MapLibre, GeoJSON, LineLayer } from "svelte-maplibre";
   import { exampleGj } from "./examples";
-  import { zoomTo } from "./common";
+  import { zoomTo, type Output } from "./common";
   import EditLine from "./EditLine.svelte";
-  import type {
-    Feature,
-    Point,
-    Polygon,
-    FeatureCollection,
-    LineString,
-  } from "geojson";
+  import OutputLayers from "./OutputLayers.svelte";
+  import type { Feature, LineString } from "geojson";
 
   //let baseURL = "https://assets.od2net.org/route-element";
   let baseURL = "http://localhost:5173/route-element/route-element";
@@ -41,21 +29,6 @@
   let line: Feature<LineString> | undefined;
   $: parseLines(map, inputGj);
 
-  interface Output {
-    length: number;
-    ruc: FeatureCollection<Polygon, { ruc11: string }>;
-    pop_density: FeatureCollection<Polygon, { pop_density: number }>;
-    os_nodes: FeatureCollection<Point, { id: string }>;
-    os_links: FeatureCollection<
-      LineString,
-      {
-        id: string;
-        road_classification: string;
-        start_node: string;
-        end_node: string;
-      }
-    >;
-  }
   let output: Output = {
     length: 0,
     ruc: emptyGeojson(),
@@ -183,75 +156,7 @@
         </GeoJSON>
       {/if}
 
-      <GeoJSON data={output.ruc}>
-        <FillLayer
-          manageHoverState
-          layout={{
-            visibility: show == "ruc" ? "visible" : "none",
-          }}
-          paint={{
-            "fill-color": [
-              "case",
-              ["in", "Urban", ["get", "ruc11"]],
-              "orange",
-              "green",
-            ],
-            "fill-opacity": hoverStateFilter(0.3, 0.5),
-          }}
-        >
-          <Popup openOn="hover" let:props>{props.ruc11}</Popup>
-        </FillLayer>
-      </GeoJSON>
-
-      <GeoJSON data={output.pop_density}>
-        <FillLayer
-          manageHoverState
-          layout={{
-            visibility: show == "pop_density" ? "visible" : "none",
-          }}
-          paint={{
-            "fill-color": "blue",
-            "fill-opacity": hoverStateFilter(0.3, 0.5),
-          }}
-        >
-          <Popup openOn="hover" let:props>
-            {props.pop_density} people / square km
-          </Popup>
-        </FillLayer>
-      </GeoJSON>
-
-      <GeoJSON data={output.os_links}>
-        <LineLayer
-          layout={{
-            visibility: show == "os_network" ? "visible" : "none",
-          }}
-          paint={{
-            "line-width": 3,
-            "line-color": "black",
-          }}
-        >
-          <Popup openOn="hover" let:props>
-            {props.road_classification}
-          </Popup>
-        </LineLayer>
-      </GeoJSON>
-
-      <GeoJSON data={output.os_nodes}>
-        <CircleLayer
-          manageHoverState
-          layout={{
-            visibility: show == "os_network" ? "visible" : "none",
-          }}
-          paint={{
-            "circle-color": "green",
-            "circle-radius": hoverStateFilter(5, 8),
-          }}
-        >
-          <Popup openOn="hover" let:props>
-            {props.id}
-          </Popup>
-        </CircleLayer>
-      </GeoJSON>
+      <OutputLayers {output} {show} />
     </MapLibre>
   </div>
 </Layout>
