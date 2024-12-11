@@ -1,6 +1,6 @@
 use anyhow::{bail, Result};
 use flatgeobuf::{FeatureProperties, FgbFeature, GeozeroGeometry, HttpFgbReader};
-use geo::{MultiPolygon, Point, Rect};
+use geo::{LineString, MultiPolygon, Point, Rect};
 
 pub async fn read_fgb<Geom, F: Fn(&FgbFeature) -> Result<Geom>, T: geozero::PropertyReadType>(
     bbox: Rect,
@@ -37,6 +37,15 @@ pub fn get_point(f: &FgbFeature) -> Result<Point> {
     f.process_geom(&mut p)?;
     match p.take_geometry().unwrap() {
         geo::Geometry::Point(p) => Ok(p),
+        _ => bail!("Wrong type in fgb"),
+    }
+}
+
+pub fn get_linestring(f: &FgbFeature) -> Result<LineString> {
+    let mut p = geozero::geo_types::GeoWriter::new();
+    f.process_geom(&mut p)?;
+    match p.take_geometry().unwrap() {
+        geo::Geometry::LineString(ls) => Ok(ls),
         _ => bail!("Wrong type in fgb"),
     }
 }

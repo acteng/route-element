@@ -23,7 +23,7 @@ pub async fn eval_route(input: JsValue, base_url: String) -> Result<String, JsVa
     let pop_density = read_pop_density(&line, &base_url)
         .await
         .map_err(err_to_js)?;
-    let os_network = os::read_os_network(&line, &base_url)
+    let (os_nodes, os_links) = os::read_os_network(&line, &base_url)
         .await
         .map_err(err_to_js)?;
 
@@ -31,7 +31,8 @@ pub async fn eval_route(input: JsValue, base_url: String) -> Result<String, JsVa
         "length": line.length::<Haversine>(),
         "ruc": ruc,
         "pop_density": pop_density,
-        "os_nodes": os_network,
+        "os_nodes": os_nodes,
+        "os_links": os_links,
     })
     .to_string())
 }

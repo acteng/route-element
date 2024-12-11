@@ -38,7 +38,7 @@
 
   let inputGj = JSON.stringify(exampleGj);
 
-  let line: Feature<LineString> | undefined;
+  let line: Feature<LineString, { kind: "input" }> | undefined;
   $: parseLines(map, inputGj);
 
   interface Output {
@@ -46,12 +46,14 @@
     ruc: Feature<Polygon, { RUC11: string }>[];
     pop_density: Feature<Polygon, { pop_density: number }>[];
     os_nodes: Feature<Point, { id: string }>[];
+    os_links: Feature<LineString, { road_id: string }>[];
   }
   let output: Output = {
     length: 0,
     ruc: [],
     pop_density: [],
     os_nodes: [],
+    os_links: [],
   };
   $: if (loaded && line && output.length == 0) {
     recalc();
@@ -61,7 +63,7 @@
     f.properties.RUC11.startsWith("Urban"),
   ).length;
 
-  let show: "ruc" | "pop_density" | "os_nodes" = "ruc";
+  let show: "ruc" | "pop_density" | "os_network" = "ruc";
 
   function parseLines(map: Map | undefined, inputGj: string) {
     if (!map) {
@@ -80,6 +82,7 @@
       }
 
       line = gj.features[0];
+      line!.properties = { kind: "input" };
       zoomTo(map, gj);
     } catch (err) {
       window.alert(err);
@@ -87,12 +90,17 @@
   }
 
   function makeGj(
-    line: Feature<LineString> | undefined,
+    line: Feature<LineString, { kind: "input" }> | undefined,
     output: Output,
   ): FeatureCollection {
     let gj: FeatureCollection = {
       type: "FeatureCollection" as const,
-      features: [...output.ruc, ...output.pop_density, ...output.os_nodes],
+      features: [
+        ...output.ruc,
+        ...output.pop_density,
+        ...output.os_nodes,
+        ...output.os_links,
+      ],
     };
     if (line) {
       gj.features.push(line);
@@ -129,8 +137,8 @@
         Pop density
       </label>
       <label>
-        <input type="radio" value="os_nodes" bind:group={show} />
-        OS nodes
+        <input type="radio" value="os_network" bind:group={show} />
+        OS links and nodes
       </label>
     </fieldset>
 
@@ -150,7 +158,7 @@
 
       <GeoJSON data={makeGj(line, output)} generateId>
         <LineLayer
-          filter={isLine}
+          filter={["==", ["get", "kind"], "input"]}
           paint={{
             "line-width": 5,
             "line-color": "red",
@@ -196,13 +204,28 @@
           filter={isPoint}
           manageHoverState
           layout={{
-            visibility: show == "os_nodes" ? "visible" : "none",
+            visibility: show == "os_network" ? "visible" : "none",
           }}
           paint={{
             "circle-color": "green",
             "circle-radius": hoverStateFilter(5, 8),
           }}
         />
+
+        <LineLayer
+          filter={["all", isLine, ["has", "road_classification"]]}
+          layout={{
+            visibility: show == "os_network" ? "visible" : "none",
+          }}
+          paint={{
+            "line-width": 3,
+            "line-color": "black",
+          }}
+        >
+          <Popup openOn="hover" let:props>
+            {props.road_classification}
+          </Popup>
+        </LineLayer>
       </GeoJSON>
     </MapLibre>
   </div>
