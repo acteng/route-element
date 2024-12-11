@@ -1,5 +1,11 @@
 import type { Map } from "maplibre-gl";
-import type { Point, Polygon, FeatureCollection, LineString } from "geojson";
+import type {
+  Point,
+  Polygon,
+  GeoJSON,
+  FeatureCollection,
+  LineString,
+} from "geojson";
 import bbox from "@turf/bbox";
 
 export interface Output {
@@ -18,11 +24,9 @@ export interface Output {
   >;
 }
 
-export function zoomTo(map: Map, gj: FeatureCollection) {
-  if (gj.features.length > 0) {
-    map.fitBounds(bbox(gj) as [number, number, number, number], {
-      animate: false,
-      padding: 10,
-    });
-  }
+export function zoomTo(map: Map, gj: GeoJSON) {
+  map.fitBounds(bbox(gj) as [number, number, number, number], {
+    animate: false,
+    padding: 10,
+  });
 }

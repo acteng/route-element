@@ -10,7 +10,7 @@
   import { zoomTo, type Output } from "./common";
   import EditLine from "./EditLine.svelte";
   import OutputLayers from "./OutputLayers.svelte";
-  import type { Feature, LineString } from "geojson";
+  import type { FeatureCollection, LineString } from "geojson";
 
   //let baseURL = "https://assets.od2net.org/route-element";
   let baseURL = "http://localhost:5173/route-element/route-element";
@@ -19,15 +19,18 @@
   let map: Map | undefined;
   let loaded = false;
 
+  let showInput = true;
+  let show: "ruc" | "pop_density" | "os_network" = "ruc";
+
   onMount(async () => {
     await init();
     loaded = true;
+    cleanInput(JSON.stringify(exampleGj));
   });
 
-  let inputGj = JSON.stringify(exampleGj);
-
-  let line: Feature<LineString> | undefined;
-  $: parseLines(map, inputGj);
+  let inputGj: FeatureCollection<LineString> = emptyGeojson();
+  let current: number | null = null;
+  let line: Feature<LineString> | null = null;
 
   let output: Output = {
     length: 0,
@@ -36,7 +39,7 @@
     os_nodes: emptyGeojson(),
     os_links: emptyGeojson(),
   };
-  $: if (loaded && line && output.length == 0) {
+  $: if (loaded && current != null && output.length == 0) {
     recalc();
   }
 
@@ -44,34 +47,30 @@
     f.properties.ruc11.startsWith("Urban"),
   ).length;
 
-  let showInput = true;
-  let show: "ruc" | "pop_density" | "os_network" = "ruc";
-
-  function parseLines(map: Map | undefined, inputGj: string) {
-    if (!map) {
-      return;
-    }
-    line = undefined;
+  function cleanInput(input: string) {
+    inputGj = emptyGeojson();
+    current = null;
 
     try {
-      let gj = JSON.parse(inputGj);
-
-      if (
-        gj.features.length == 0 ||
-        gj.features[0].geometry.type != "LineString"
-      ) {
-        throw new Error(`Need a FeatureCollection with a LineString`);
+      let gj: FeatureCollection = JSON.parse(input);
+      gj.features = gj.features.filter((f) => f.geometry.type == "LineString");
+      if (gj.features.length == 0) {
+        throw new Error(`No LineStrings`);
       }
-
-      line = gj.features[0];
-      zoomTo(map, gj);
+      inputGj = gj;
+      current = 0;
     } catch (err) {
       window.alert(err);
     }
   }
 
   async function recalc() {
-    if (loaded && line) {
+    if (loaded && current != null) {
+      line = inputGj.features[current];
+      if (map) {
+        zoomTo(map, line);
+      }
+
       try {
         // TODO Hacky
         let x = JSON.parse(await evalRoute(line, baseURL));
@@ -98,7 +97,25 @@
 <Layout>
   <div slot="left">
     <p>Input:</p>
-    <textarea bind:value={inputGj} rows={5} />
+    {#if current != null}
+      <button
+        on:click={() => {
+          current--;
+          recalc();
+        }}
+      >
+        Prev
+      </button>
+      {current + 1} / {inputGj.features.length}
+      <button
+        on:click={() => {
+          current++;
+          recalc();
+        }}
+      >
+        Next
+      </button>
+    {/if}
 
     <p>Output:</p>
     <button on:click={recalc}>Recalculate</button>
