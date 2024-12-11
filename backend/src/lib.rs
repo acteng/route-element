@@ -7,6 +7,8 @@ use geojson::{Feature, Geometry};
 
 use wasm_bindgen::prelude::*;
 
+mod os;
+
 static START: Once = Once::new();
 
 /// Takes a GeoJSON `Feature<LineString>` and returns a JSON object with some info
@@ -21,11 +23,13 @@ pub async fn eval_route(input: JsValue, base_url: String) -> Result<String, JsVa
     let pop_density = read_pop_density(&line, &base_url)
         .await
         .map_err(err_to_js)?;
+    let os_network = os::read_os_network(&line, &base_url).await.map_err(err_to_js)?;
 
     Ok(serde_json::json!({
         "length": line.length::<Haversine>(),
         "ruc": ruc,
         "pop_density": pop_density,
+        "os_nodes": os_network,
     })
     .to_string())
 }

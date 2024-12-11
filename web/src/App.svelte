@@ -2,7 +2,7 @@
   import "@picocss/pico/css/pico.jade.min.css";
   import init, { evalRoute } from "backend";
   import { Layout } from "svelte-utils/two_column_layout";
-  import { Popup, isLine, isPolygon } from "svelte-utils/map";
+  import { Popup, isLine, isPolygon, isPoint } from "svelte-utils/map";
   import type { Map } from "maplibre-gl";
   import { onMount } from "svelte";
   import {
@@ -11,12 +11,14 @@
     LineLayer,
     FillLayer,
     hoverStateFilter,
+    CircleLayer,
   } from "svelte-maplibre";
   import { exampleGj } from "./examples";
   import { zoomTo } from "./common";
   import EditLine from "./EditLine.svelte";
   import type {
     Feature,
+    Point,
     Polygon,
     FeatureCollection,
     LineString,
@@ -43,11 +45,13 @@
     length: number;
     ruc: Feature<Polygon, { RUC11: string }>[];
     pop_density: Feature<Polygon, { pop_density: number }>[];
+    os_nodes: Feature<Point, { id: string }>[];
   }
   let output: Output = {
     length: 0,
     ruc: [],
     pop_density: [],
+    os_nodes: [],
   };
   $: if (loaded && line && output.length == 0) {
     recalc();
@@ -57,7 +61,7 @@
     f.properties.RUC11.startsWith("Urban"),
   ).length;
 
-  let show: "ruc" | "pop_density" = "ruc";
+  let show: "ruc" | "pop_density" | "os_nodes" = "ruc";
 
   function parseLines(map: Map | undefined, inputGj: string) {
     if (!map) {
@@ -88,7 +92,7 @@
   ): FeatureCollection {
     let gj: FeatureCollection = {
       type: "FeatureCollection" as const,
-      features: [...output.ruc, ...output.pop_density],
+      features: [...output.ruc, ...output.pop_density, ...output.os_nodes],
     };
     if (line) {
       gj.features.push(line);
@@ -118,11 +122,15 @@
     <fieldset>
       <label>
         <input type="radio" value="ruc" bind:group={show} />
-         RUC
+        RUC
       </label>
       <label>
         <input type="radio" value="pop_density" bind:group={show} />
-         Pop density
+        Pop density
+      </label>
+      <label>
+        <input type="radio" value="os_nodes" bind:group={show} />
+        OS nodes
       </label>
     </fieldset>
 
@@ -183,6 +191,18 @@
             {props.pop_density} people / square km
           </Popup>
         </FillLayer>
+
+        <CircleLayer
+          filter={isPoint}
+          manageHoverState
+          layout={{
+            visibility: show == "os_nodes" ? "visible" : "none",
+          }}
+          paint={{
+            "circle-color": "green",
+            "circle-radius": hoverStateFilter(5, 8),
+          }}
+        />
       </GeoJSON>
     </MapLibre>
   </div>
