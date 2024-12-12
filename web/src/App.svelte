@@ -12,8 +12,10 @@
   import OutputLayers from "./OutputLayers.svelte";
   import type { FeatureCollection, LineString } from "geojson";
 
-  let baseURL = "https://assets.od2net.org/route-element";
-  //let baseURL = "http://localhost:5173/route-element/route-element";
+  let baseURL =
+    import.meta.env.MODE == "development"
+      ? "http://localhost:5173/route-element/route-element"
+      : "https://assets.od2net.org/route-element";
 
   let maptilerApiKey = "MZEJTanw3WpxRvt7qDfo";
   let map: Map | undefined;
