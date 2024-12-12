@@ -7,10 +7,10 @@
   import { onMount } from "svelte";
   import { MapLibre, GeoJSON, LineLayer } from "svelte-maplibre";
   import { exampleGj } from "./examples";
-  import { zoomTo, type Output } from "./common";
+  import { zoomTo, emptyOutput, type Output } from "./common";
   import EditLine from "./EditLine.svelte";
   import OutputLayers from "./OutputLayers.svelte";
-  import type { FeatureCollection, LineString } from "geojson";
+  import type { FeatureCollection, Feature, LineString } from "geojson";
 
   let baseURL =
     import.meta.env.MODE == "development"
@@ -34,13 +34,7 @@
   let current: number | null = null;
   let line: Feature<LineString> | null = null;
 
-  let output: Output = {
-    length: 0,
-    ruc: emptyGeojson(),
-    pop_density: emptyGeojson(),
-    os_nodes: emptyGeojson(),
-    os_links: emptyGeojson(),
-  };
+  let output = emptyOutput();
   $: if (loaded && current != null && output.length == 0) {
     recalc();
   }
@@ -62,7 +56,7 @@
       inputGj = gj;
       current = 0;
       // TODO Bit of a hack to trigger reactivity
-      output.length = 0;
+      output = emptyOutput();
     } catch (err) {
       window.alert(err);
     }
@@ -70,6 +64,7 @@
 
   async function recalc() {
     if (loaded && current != null) {
+      output = emptyOutput();
       line = inputGj.features[current];
       if (map) {
         zoomTo(map, line);
@@ -156,15 +151,20 @@
       </label>
     </fieldset>
 
-    <p>Length: {Math.round(output.length)} m</p>
-    <p>
-      {numUrbanAreas} urban OAs, {output.ruc.features.length - numUrbanAreas} rural
-    </p>
-    <p>
-      {output.os_links.features.length} links, {output.os_nodes.features.length}
-      nodes
-    </p>
-    <p>{summarizeLinks(output)}</p>
+    {#if output.length == 0}
+      <p>Loading...</p>
+    {:else}
+      <p>Length: {Math.round(output.length)} m</p>
+      <p>
+        {numUrbanAreas} urban OAs, {output.ruc.features.length - numUrbanAreas} rural
+      </p>
+      <p>
+        {output.os_links.features.length} links, {output.os_nodes.features
+          .length}
+        nodes
+      </p>
+      <p>{summarizeLinks(output)}</p>
+    {/if}
   </div>
 
   <div slot="main" style="position:relative; width: 100%; height: 100vh;">

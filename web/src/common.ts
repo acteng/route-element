@@ -7,6 +7,7 @@ import type {
   LineString,
 } from "geojson";
 import bbox from "@turf/bbox";
+import { emptyGeojson } from "svelte-utils/map";
 
 export interface Output {
   length: number;
@@ -22,6 +23,16 @@ export interface Output {
       end_node: string;
     }
   >;
+}
+
+export function emptyOutput(): Output {
+  return {
+    length: 0,
+    ruc: emptyGeojson(),
+    pop_density: emptyGeojson(),
+    os_nodes: emptyGeojson(),
+    os_links: emptyGeojson(),
+  };
 }
 
 export function zoomTo(map: Map, gj: GeoJSON) {
