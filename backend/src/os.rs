@@ -3,9 +3,11 @@ use std::collections::HashMap;
 use anyhow::{bail, Context, Result};
 use flatgeobuf::{FeatureProperties, FgbFeature};
 use geo::{
-    BoundingRect, Closest, ClosestPoint, Coord, Distance, Haversine, LineLocatePoint, LineString,
-    Point,
+    BoundingRect, Closest, ClosestPoint, Coord, Distance, Haversine, Length, LineLocatePoint,
+    LineString, Point,
 };
+use log::info;
+use petgraph::graphmap::UnGraphMap;
 use rstar::{primitives::GeomWithData, RTree};
 use serde::Serialize;
 
@@ -85,8 +87,6 @@ fn map_match(
     links: &Vec<Link>,
     input: &LineString,
 ) -> Option<(Vec<Node>, Vec<Link>)> {
-    // Adapted from https://github.com/a-b-street/15m/blob/main/graph/src/snap.rs
-
     let closest_node = RTree::bulk_load(
         nodes
             .iter()
@@ -102,6 +102,23 @@ fn map_match(
         .data
         .clone();
 
+    // Try greedy first
+    if let Some(result) = greedy_snap(nodes, links, start.clone(), end.clone(), input) {
+        return Some(result);
+    }
+    info!("Greedy failed, falling back to Dijkstra");
+    dijkstra(nodes, links, start, end)
+}
+
+// Adapted from https://github.com/a-b-street/15m/blob/main/graph/src/snap.rs
+fn greedy_snap(
+    nodes: &Vec<Node>,
+    links: &Vec<Link>,
+    start: String,
+    end: String,
+    input: &LineString,
+) -> Option<(Vec<Node>, Vec<Link>)> {
+    // Node IDs are strings, the edge weight is the index into links
     let node_lookup: HashMap<String, &Node> =
         HashMap::from_iter(nodes.iter().map(|node| (node.id.clone(), node)));
     let mut links_per_node: HashMap<String, Vec<&Link>> = HashMap::new();
@@ -170,5 +187,39 @@ fn map_match(
         }
     }
 
+    Some((path_nodes, path_links))
+}
+
+fn dijkstra(
+    nodes: &Vec<Node>,
+    links: &Vec<Link>,
+    start: String,
+    end: String,
+) -> Option<(Vec<Node>, Vec<Link>)> {
+    let node_lookup: HashMap<String, &Node> =
+        HashMap::from_iter(nodes.iter().map(|node| (node.id.clone(), node)));
+
+    // Node IDs are strings, the edge weight is the index into links
+    let mut graph: UnGraphMap<&String, usize> = UnGraphMap::new();
+    for (idx, link) in links.iter().enumerate() {
+        graph.add_edge(&link.start_node, &link.end_node, idx);
+    }
+
+    let (_, path) = petgraph::algo::astar(
+        &graph,
+        &start,
+        |n| *n == end,
+        |(_, _, idx)| links[*idx].geometry.length::<Haversine>(),
+        |_| 0.0,
+    )?;
+
+    let mut path_nodes = Vec::new();
+    let mut path_links = Vec::new();
+    for n in &path {
+        path_nodes.push(node_lookup[*n].clone());
+    }
+    for pair in path.windows(2) {
+        path_links.push(links[*graph.edge_weight(pair[0], pair[1]).unwrap()].clone());
+    }
     Some((path_nodes, path_links))
 }
