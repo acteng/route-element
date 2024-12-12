@@ -19,6 +19,23 @@ pub async fn read_fgb<T, F: Fn(&FgbFeature) -> Result<T>>(
     Ok(results)
 }
 
+pub fn read_fgb_cli<T, F: Fn(&FgbFeature) -> Result<T>>(
+    bbox: Rect,
+    path: &str,
+    extract: F,
+) -> Result<Vec<T>> {
+    use flatgeobuf::FallibleStreamingIterator;
+
+    let mut fgb = flatgeobuf::FgbReader::open(std::io::BufReader::new(std::fs::File::open(path)?))?
+        .select_bbox(bbox.min().x, bbox.min().y, bbox.max().x, bbox.max().y)?;
+
+    let mut results = Vec::new();
+    while let Some(feature) = fgb.next()? {
+        results.push(extract(feature)?);
+    }
+    Ok(results)
+}
+
 pub fn get_multi_polygon(f: &FgbFeature) -> Result<MultiPolygon> {
     let mut p = geozero::geo_types::GeoWriter::new();
     f.process_geom(&mut p)?;
