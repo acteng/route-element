@@ -156,6 +156,11 @@ fn greedy_snap(
         });
 
         match next_steps
+            // Big subtlety! Because the nodes and links are separately read in by bounding box,
+            // links crossing the bbox might not have one of their nodes present. If the search
+            // goes that far, skip it. To deal with in practice, increase the buffer around the
+            // input.
+            .filter(|(n, _)| node_lookup.contains_key(n))
             .filter_map(|(n, link)| {
                 // Find the closest point on the input linestring to this possible next
                 // node
@@ -207,7 +212,10 @@ fn dijkstra(
     // Node IDs are strings, the edge weight is the index into links
     let mut graph: UnGraphMap<&String, usize> = UnGraphMap::new();
     for (idx, link) in links.iter().enumerate() {
-        graph.add_edge(&link.start_node, &link.end_node, idx);
+        // Due to the node/link and bbox issue, don't even consider links leaving the bbox
+        if node_lookup.contains_key(&link.start_node) && node_lookup.contains_key(&link.end_node) {
+            graph.add_edge(&link.start_node, &link.end_node, idx);
+        }
     }
 
     let (_, path) = petgraph::algo::astar(

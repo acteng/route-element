@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use backend::{fgb, os};
 
 fn main() -> Result<()> {
+    simple_logger::init_with_level(log::Level::Info).unwrap();
     let args: Vec<_> = std::env::args().collect();
     let route_input = &args[1];
     let fgb_base_dir = &args[2];
