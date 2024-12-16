@@ -1,6 +1,6 @@
 use anyhow::{bail, Context, Result};
 use geo::{BoundingRect, Intersects, LineString};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use backend::{fgb, os};
 
@@ -12,15 +12,20 @@ fn main() -> Result<()> {
     for input in geojson::de::deserialize_feature_collection_str_to_vec::<GeoJsonLineString>(
         &std::fs::read_to_string(route_input)?,
     )? {
+        //println!("{}", geojson::ser::to_feature_collection_string(&vec![input.clone()])?);
+
         handle(&input.geometry, fgb_base_dir)?;
     }
 
     Ok(())
 }
 
-#[derive(Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 struct GeoJsonLineString {
-    #[serde(deserialize_with = "geojson::de::deserialize_geometry")]
+    #[serde(
+        deserialize_with = "geojson::de::deserialize_geometry",
+        serialize_with = "geojson::ser::serialize_geometry"
+    )]
     geometry: LineString,
 }
 
@@ -39,13 +44,16 @@ fn handle(line: &LineString, base_dir: &str) -> Result<()> {
     .context("pop_density")?;
     pop_density.retain(|x| x.geometry.intersects(line));
 
-    let (_nodes, links) = os_path(line, base_dir)?;
+    let num_links = match os_path(line, base_dir) {
+        Ok((_nodes, links)) => links.len(),
+        Err(_) => 0,
+    };
 
     println!(
         "{} ruc, {} pop_density, {} links",
         ruc.len(),
         pop_density.len(),
-        links.len()
+        num_links
     );
 
     Ok(())
