@@ -4,7 +4,7 @@ use anyhow::{bail, Context, Result};
 use flatgeobuf::{FeatureProperties, FgbFeature};
 use geo::{
     BoundingRect, Closest, ClosestPoint, Coord, Distance, Haversine, Length, LineLocatePoint,
-    LineString, Point,
+    LineString, Point, Rect,
 };
 use log::info;
 use petgraph::graphmap::UnGraphMap;
@@ -30,8 +30,7 @@ pub struct Node {
     id: String,
 }
 
-/// Returns OS links and nodes in the vicinity of the input
-pub async fn read_os_network(line: &LineString, base_url: &str) -> Result<(Vec<Node>, Vec<Link>)> {
+pub fn bbox_for_os(line: &LineString) -> Rect {
     let mut bbox = line.bounding_rect().unwrap();
 
     // Expand the bbox, so we're more likely to have a nice connected graph around the input
@@ -47,6 +46,12 @@ pub async fn read_os_network(line: &LineString, base_url: &str) -> Result<(Vec<N
         y: bbox.max().y + h,
     });
 
+    bbox
+}
+
+/// Returns OS links and nodes in the vicinity of the input
+pub async fn read_os_network(line: &LineString, base_url: &str) -> Result<(Vec<Node>, Vec<Link>)> {
+    let bbox = bbox_for_os(line);
     let url1 = format!("{base_url}/os_nodes.fgb");
     let url2 = format!("{base_url}/os_links.fgb");
     let nodes = fgb::read_fgb(bbox, &url1, read_node)
@@ -64,7 +69,7 @@ pub async fn read_os_network(line: &LineString, base_url: &str) -> Result<(Vec<N
     Ok((path_nodes, path_links))
 }
 
-fn read_link(f: &FgbFeature) -> Result<Link> {
+pub fn read_link(f: &FgbFeature) -> Result<Link> {
     Ok(Link {
         geometry: fgb::get_linestring(f)?,
         id: f.property("id")?,
@@ -74,7 +79,7 @@ fn read_link(f: &FgbFeature) -> Result<Link> {
     })
 }
 
-fn read_node(f: &FgbFeature) -> Result<Node> {
+pub fn read_node(f: &FgbFeature) -> Result<Node> {
     Ok(Node {
         geometry: fgb::get_point(f)?,
         id: f.property("id")?,
@@ -82,7 +87,7 @@ fn read_node(f: &FgbFeature) -> Result<Node> {
 }
 
 /// Returns just the nodes and links best forming the path
-fn map_match(
+pub fn map_match(
     nodes: &Vec<Node>,
     links: &Vec<Link>,
     input: &LineString,

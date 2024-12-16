@@ -9,7 +9,7 @@ use serde::Serialize;
 use wasm_bindgen::prelude::*;
 
 pub mod fgb;
-mod os;
+pub mod os;
 
 static START: Once = Once::new();
 
