@@ -1,10 +1,10 @@
 <script lang="ts">
   import {
-    GeoJSON,
-    LineLayer,
-    FillLayer,
-    hoverStateFilter,
     CircleLayer,
+    FillLayer,
+    GeoJSON,
+    hoverStateFilter,
+    LineLayer,
   } from "svelte-maplibre";
   import { Popup } from "svelte-utils/map";
   import { type Output } from "./common";

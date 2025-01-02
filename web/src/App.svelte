@@ -1,16 +1,16 @@
 <script lang="ts">
   import "@picocss/pico/css/pico.jade.min.css";
   import init, { evalRoute } from "backend";
-  import { Layout } from "svelte-utils/two_column_layout";
-  import { emptyGeojson } from "svelte-utils/map";
+  import type { Feature, FeatureCollection, LineString } from "geojson";
   import type { Map } from "maplibre-gl";
   import { onMount } from "svelte";
-  import { MapLibre, GeoJSON, LineLayer } from "svelte-maplibre";
-  import { exampleGj } from "./examples";
-  import { zoomTo, emptyOutput, type Output } from "./common";
+  import { GeoJSON, LineLayer, MapLibre } from "svelte-maplibre";
+  import { emptyGeojson } from "svelte-utils/map";
+  import { Layout } from "svelte-utils/two_column_layout";
+  import { emptyOutput, zoomTo, type Output } from "./common";
   import EditLine from "./EditLine.svelte";
+  import { exampleGj } from "./examples";
   import OutputLayers from "./OutputLayers.svelte";
-  import type { FeatureCollection, Feature, LineString } from "geojson";
 
   let baseURL =
     import.meta.env.MODE == "development"

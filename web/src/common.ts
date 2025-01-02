@@ -1,12 +1,12 @@
-import type { Map } from "maplibre-gl";
+import bbox from "@turf/bbox";
 import type {
+  FeatureCollection,
+  GeoJSON,
+  LineString,
   Point,
   Polygon,
-  GeoJSON,
-  FeatureCollection,
-  LineString,
 } from "geojson";
-import bbox from "@turf/bbox";
+import type { Map } from "maplibre-gl";
 import { emptyGeojson } from "svelte-utils/map";
 
 export interface Output {
