@@ -3,8 +3,8 @@
   import type { Map } from "maplibre-gl";
   import { MapLibre } from "svelte-maplibre";
   import { Layout } from "svelte-utils/two_column_layout";
+  import { getStyle } from "./google";
 
-  let maptilerApiKey = "MZEJTanw3WpxRvt7qDfo";
   let map: Map | undefined;
 </script>
 
@@ -12,10 +12,8 @@
   <div slot="left"></div>
 
   <div slot="main" style="position:relative; width: 100%; height: 100vh;">
-    <MapLibre
-      style={`https://api.maptiler.com/maps/dataviz/style.json?key=${maptilerApiKey}`}
-      standardControls
-      bind:map
-    ></MapLibre>
+    {#await getStyle(new URLSearchParams(window.location.search).get("google") || "") then style}
+      <MapLibre {style} standardControls bind:map></MapLibre>
+    {/await}
   </div>
 </Layout>
