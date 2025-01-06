@@ -13,10 +13,12 @@
   import { getStyle } from "./google";
   import LinkForm from "./LinkForm.svelte";
   import { blankLink, loadState, type Link } from "./state";
+  import Table from "./Table.svelte";
 
   let map: Map | undefined;
   let links: Link[] = loadState();
   let editLinkIdx: number | null = null;
+  let showTable = false;
 
   $: gj = {
     type: "FeatureCollection" as const,
@@ -35,11 +37,16 @@
   }
 </script>
 
+{#if showTable}
+  <Table {links} on:close={() => (showTable = false)} />
+{/if}
+
 <Layout>
   <div slot="left">
     {#if editLinkIdx == null}
       <button on:click={newLink}>New link</button>
       <button on:click={clear}>Clear</button>
+      <button on:click={() => (showTable = true)}>Table of questions</button>
 
       <ol>
         {#each links as link, idx}
