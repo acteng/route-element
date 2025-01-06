@@ -1,6 +1,5 @@
 <script lang="ts">
   import "@picocss/pico/css/pico.jade.min.css";
-  import type { Feature, LineString } from "geojson";
   import type { Map } from "maplibre-gl";
   import {
     GeoJSON,
@@ -9,11 +8,11 @@
     MapLibre,
   } from "svelte-maplibre";
   import { Layout } from "svelte-utils/two_column_layout";
+  import ClickLink from "./ClickLink.svelte";
   import EditLine from "./EditLine.svelte";
   import { getStyle } from "./google";
-  import Link from "./Link.svelte";
-
-  type Link = Feature<LineString, { name: string; color: string }>;
+  import LinkForm from "./LinkForm.svelte";
+  import { blankLink, loadState, type Link } from "./state";
 
   let map: Map | undefined;
   let links: Link[] = loadState();
@@ -25,48 +24,12 @@
   };
   $: window.localStorage.setItem("tmp-rcv2", JSON.stringify(gj));
 
-  function loadState(): Link[] {
-    try {
-      let gj = JSON.parse(window.localStorage.getItem("tmp-rcv2") || "");
-      if ("features" in gj) {
-        return gj.features;
-      }
-    } catch (err) {}
-    return [];
-  }
-
   function clear() {
     links = [];
   }
 
   function newLink() {
-    // Vivid from https://carto.com/carto-colors/
-    let colors = [
-      "#66C5CC",
-      "#F6CF71",
-      "#F89C74",
-      "#DCB0F2",
-      "#87C55F",
-      "#9EB9F3",
-      "#FE88B1",
-      "#C9DB74",
-      "#8BE0A4",
-      "#B497E7",
-      "#D3B484",
-      "#B3B3B3",
-    ];
-
-    let f = {
-      type: "Feature" as const,
-      geometry: {
-        type: "LineString" as const,
-        coordinates: [],
-      },
-      properties: {
-        name: "Untitled link",
-        color: colors[links.length % colors.length],
-      },
-    };
+    let f = blankLink(links.length);
     links = [...links, f];
     editLinkIdx = links.length - 1;
   }
@@ -81,12 +44,12 @@
       <ol>
         {#each links as link, idx}
           <li>
-            <Link
+            <ClickLink
               on:click={() => (editLinkIdx = idx)}
               color={link.properties.color}
             >
               {link.properties.name}
-            </Link>
+            </ClickLink>
           </li>
         {/each}
       </ol>
@@ -97,6 +60,8 @@
         Name:
         <input type="text" bind:value={links[editLinkIdx].properties.name} />
       </label>
+
+      <LinkForm bind:f={links[editLinkIdx]} />
     {/if}
   </div>
 
