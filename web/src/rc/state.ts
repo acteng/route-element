@@ -2,14 +2,28 @@ import type { Feature, LineString } from "geojson";
 
 export type Link = Feature<
   LineString,
-  { name: string; color: string } & LinkDetails
+  { name: string; color: string; answers: string[] }
 >;
 
-export interface LinkDetails {
-  q1: "a" | "b" | "";
-  q2: "c" | "d" | "";
-  q3: number;
+export interface Question {
+  name: string;
+  choices: string[];
 }
+
+export let questions: Question[] = [
+  {
+    name: "Question 1",
+    choices: ["", "A", "B"],
+  },
+  {
+    name: "Question 2",
+    choices: ["", "C", "D"],
+  },
+  {
+    name: "Question 3",
+    choices: ["", "e", "ffff"],
+  },
+];
 
 export function blankLink(idx: number): Link {
   // Vivid from https://carto.com/carto-colors/
@@ -37,10 +51,7 @@ export function blankLink(idx: number): Link {
     properties: {
       name: "Untitled link",
       color: colors[idx % colors.length],
-
-      q1: "",
-      q2: "",
-      q3: 0,
+      answers: Array(questions.length).fill(""),
     },
   };
 }
@@ -48,7 +59,7 @@ export function blankLink(idx: number): Link {
 export function loadState(): Link[] {
   try {
     let gj = JSON.parse(window.localStorage.getItem("tmp-rcv2") || "");
-    if ("features" in gj) {
+    if ("features" in gj && "answers" in gj.features[0].properties) {
       return gj.features;
     }
   } catch (err) {}

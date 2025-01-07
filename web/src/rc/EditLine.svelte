@@ -1,7 +1,6 @@
 <script lang="ts">
   import type { Feature, LineString } from "geojson";
   import type { MapMouseEvent } from "maplibre-gl";
-  import { onDestroy, onMount } from "svelte";
   import { MapEvents, Marker } from "svelte-maplibre";
 
   export let f: Feature<LineString>;

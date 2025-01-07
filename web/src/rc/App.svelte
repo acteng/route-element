@@ -12,7 +12,7 @@
   import EditLine from "./EditLine.svelte";
   import { getStyle } from "./google";
   import LinkForm from "./LinkForm.svelte";
-  import { blankLink, loadState, type Link } from "./state";
+  import { blankLink, loadState, questions, type Link } from "./state";
   import Table from "./Table.svelte";
 
   let map: Map | undefined;
@@ -21,7 +21,7 @@
   type Mode =
     | { kind: "neutral" }
     | { kind: "edit-link"; idx: number }
-    | { kind: "question"; n: number };
+    | { kind: "edit-question"; idx: number };
   let mode: Mode = { kind: "neutral" };
   let showTable = false;
 
@@ -69,33 +69,18 @@
 
       Questions:
       <ol>
-        <li>
-          <ClickLink on:click={() => (mode = { kind: "edit-question", n: 1 })}>
-            Question 1
-          </ClickLink>:
-          <progress
-            value={links.filter((f) => f.properties.q1 != "").length}
-            max={links.length}
-          />
-        </li>
-        <li>
-          <ClickLink on:click={() => (mode = { kind: "edit-question", n: 2 })}>
-            Question 2
-          </ClickLink>:
-          <progress
-            value={links.filter((f) => f.properties.q2 != "").length}
-            max={links.length}
-          />
-        </li>
-        <li>
-          <ClickLink on:click={() => (mode = { kind: "edit-question", n: 3 })}>
-            Question 3
-          </ClickLink>:
-          <progress
-            value={links.filter((f) => f.properties.q3 != 0).length}
-            max={links.length}
-          />
-        </li>
+        {#each questions as q, idx}
+          <li>
+            <ClickLink on:click={() => (mode = { kind: "edit-question", idx })}>
+              {q.name}
+            </ClickLink>:
+            <progress
+              value={links.filter((f) => f.properties.answers[idx] != "")
+                .length}
+              max={links.length}
+            />
+          </li>
+        {/each}
       </ol>
     {:else if mode.kind == "edit-link"}
       <button on:click={() => (mode = { kind: "neutral" })}>Done</button>
@@ -109,7 +94,22 @@
     {:else if mode.kind == "edit-question"}
       <button on:click={() => (mode = { kind: "neutral" })}>Done</button>
 
-      <h2>Question {mode.n}</h2>
+      <h2>{questions[mode.idx].name}</h2>
+      <ol>
+        {#each links as link, idx}
+          <li>
+            <span style:color={link.properties.color}>
+              {link.properties.name}
+            </span>
+
+            <select bind:value={link.properties.answers[idx]}>
+              {#each questions[mode.idx].choices as value}
+                <option {value}>{value}</option>
+              {/each}
+            </select>
+          </li>
+        {/each}
+      </ol>
     {/if}
   </div>
 
