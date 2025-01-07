@@ -1,4 +1,19 @@
 import type { Feature, LineString } from "geojson";
+import { derived, writable, type Writable } from "svelte/store";
+
+export let links: Writable<Link[]> = writable(loadState());
+export let gj = derived(links, (links) => {
+  return {
+    type: "FeatureCollection",
+    features: links,
+  };
+});
+
+type Mode =
+  | { kind: "neutral" }
+  | { kind: "edit-link"; idx: number }
+  | { kind: "edit-question"; idx: number };
+export let mode: Writable<Mode> = writable({ kind: "neutral" });
 
 export type Link = Feature<
   LineString,
@@ -113,7 +128,7 @@ export function blankLink(idx: number): Link {
   };
 }
 
-export function loadState(): Link[] {
+function loadState(): Link[] {
   try {
     let gj = JSON.parse(window.localStorage.getItem("tmp-rcv2") || "");
     if ("features" in gj && "answers" in gj.features[0].properties) {
