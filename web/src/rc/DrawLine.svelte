@@ -25,7 +25,7 @@
     height: 30px;
     border-radius: 50%;
     display: flex;
-    background-color: grey;
+    background-color: red;
   }
 
   .dot:hover {
