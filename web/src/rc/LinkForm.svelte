@@ -6,7 +6,7 @@
 
 {#each questions as q, idx}
   <label>
-    {q.name}
+    {q.name}: {q.description}
     <select bind:value={f.properties.answers[idx]}>
       {#each q.choices as value}
         <option {value}>{value}</option>

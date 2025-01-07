@@ -103,7 +103,7 @@
     {:else if mode.kind == "edit-question"}
       <button on:click={() => (mode = { kind: "neutral" })}>Done</button>
 
-      <h2>{questions[mode.idx].name}</h2>
+      <h2>{questions[mode.idx].name}: {questions[mode.idx].description}</h2>
       <ol>
         {#each links as link, idx}
           <li>
