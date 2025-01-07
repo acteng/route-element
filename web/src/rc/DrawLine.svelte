@@ -4,22 +4,14 @@
   import { MapEvents, Marker } from "svelte-maplibre";
 
   export let f: Feature<LineString>;
-  export let onDone: () => void;
 
   function onMapClick(e: CustomEvent<MapMouseEvent>) {
     f.geometry.coordinates.push(e.detail.lngLat.toArray());
     f = f;
   }
-
-  function onKeyDown(e: KeyboardEvent) {
-    if (e.key == "Escape") {
-      onDone();
-    }
-  }
 </script>
 
 <MapEvents on:click={onMapClick} />
-<svelte:window on:keydown={onKeyDown} />
 
 {#each f.geometry.coordinates as pt}
   <Marker draggable bind:lngLat={pt}>

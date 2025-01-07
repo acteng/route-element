@@ -4,7 +4,7 @@ import { derived, writable, type Writable } from "svelte/store";
 export let links: Writable<Link[]> = writable(loadState());
 export let gj = derived(links, (links) => {
   return {
-    type: "FeatureCollection",
+    type: "FeatureCollection" as const,
     features: links,
   };
 });

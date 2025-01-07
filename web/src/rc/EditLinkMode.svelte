@@ -1,15 +1,41 @@
 <script lang="ts">
+  import { tick } from "svelte";
   import { GeoJSON, LineLayer } from "svelte-maplibre";
   import { SplitComponent } from "svelte-utils/two_column_layout";
   import DrawLine from "./DrawLine.svelte";
   import { gj, links, mode, questions } from "./state";
 
   export let idx: number;
+
+  $: valid = $links[idx].geometry.coordinates.length >= 2;
+
+  function onKeyDown(e: KeyboardEvent) {
+    if (e.key == "Escape" && valid) {
+      $mode = { kind: "neutral" };
+    }
+  }
+
+  async function remove() {
+    if (window.confirm("Really delete this link?")) {
+      $mode = { kind: "neutral" };
+      await tick();
+      $links.splice(idx, 1);
+      $links = $links;
+    }
+  }
 </script>
+
+<svelte:window on:keydown={onKeyDown} />
 
 <SplitComponent>
   <div slot="sidebar">
-    <button on:click={() => ($mode = { kind: "neutral" })}>Done</button>
+    <button on:click={() => ($mode = { kind: "neutral" })} disabled={!valid}>
+      Done
+    </button>
+    <button on:click={remove}>Delete link</button>
+    {#if !valid}
+      <p>A link needs at least two points</p>
+    {/if}
 
     <label>
       Name:
@@ -44,9 +70,6 @@
       />
     </GeoJSON>
 
-    <DrawLine
-      bind:f={$links[idx]}
-      onDone={() => ($mode = { kind: "neutral" })}
-    />
+    <DrawLine bind:f={$links[idx]} />
   </div>
 </SplitComponent>
