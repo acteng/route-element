@@ -41,7 +41,15 @@
     links = [...links, f];
     mode = { kind: "edit-link", idx: links.length - 1 };
   }
+
+  function onKeyDown(e: KeyboardEvent) {
+    if (e.key == "Escape" && mode.kind == "edit-question") {
+      mode = { kind: "neutral" };
+    }
+  }
 </script>
+
+<svelte:window on:keydown={onKeyDown} />
 
 {#if showTable}
   <Table {links} on:close={() => (showTable = false)} />

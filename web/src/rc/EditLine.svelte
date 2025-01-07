@@ -12,7 +12,7 @@
   }
 
   function onKeyDown(e: KeyboardEvent) {
-    if (e.key == "Enter") {
+    if (e.key == "Escape") {
       onDone();
     }
   }
