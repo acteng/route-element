@@ -7,6 +7,7 @@
     LineLayer,
     MapLibre,
   } from "svelte-maplibre";
+  import { downloadGeneratedFile } from "svelte-utils";
   import { Layout } from "svelte-utils/two_column_layout";
   import ClickLink from "./ClickLink.svelte";
   import EditLine from "./EditLine.svelte";
@@ -49,9 +50,17 @@
 <Layout>
   <div slot="left">
     {#if mode.kind == "neutral"}
-      <button on:click={newLink}>New link</button>
-      <button on:click={clear}>Clear</button>
-      <button on:click={() => (showTable = true)}>Table of questions</button>
+      <div>
+        <button on:click={newLink}>New link</button>
+        <button on:click={clear}>Clear</button>
+        <button on:click={() => (showTable = true)}>Table of questions</button>
+        <button
+          on:click={() =>
+            downloadGeneratedFile("rcv2.geojson", JSON.stringify(gj))}
+        >
+          Download
+        </button>
+      </div>
 
       Links:
       <ol>
@@ -102,7 +111,7 @@
               {link.properties.name}
             </span>
 
-            <select bind:value={link.properties.answers[idx]}>
+            <select bind:value={link.properties.answers[mode.idx]}>
               {#each questions[mode.idx].choices as value}
                 <option {value}>{value}</option>
               {/each}

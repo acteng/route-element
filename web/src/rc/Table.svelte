@@ -1,7 +1,6 @@
 <script lang="ts">
   import { Modal } from "svelte-utils";
   import { questions, type Link } from "./state";
-  import TableCell from "./TableCell.svelte";
 
   export let links: Link[];
 </script>
@@ -10,18 +9,19 @@
   <table>
     <thead>
       <tr>
-        <th>Link</th>
-        {#each questions as q}
-          <th>{q.name}</th>
+        <th></th>
+        {#each links as link}
+          <th style:color={link.properties.color}>{link.properties.name}</th>
         {/each}
       </tr>
     </thead>
     <tbody>
-      {#each links as link}
+      {#each questions as q, idx}
         <tr>
-          <td>{link.properties.name}</td>
-          {#each link.properties.answers as value}
-            <TableCell done={value != ""} />
+          <th>{q.name}</th>
+          {#each links as link}
+            {@const value = link.properties.answers[idx]}
+            <td style:background={value == "" ? "red" : "green"}>{value}</td>
           {/each}
         </tr>
       {/each}
