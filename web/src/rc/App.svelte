@@ -17,7 +17,12 @@
 
   let map: Map | undefined;
   let links: Link[] = loadState();
-  let editLinkIdx: number | null = null;
+
+  type Mode =
+    | { kind: "neutral" }
+    | { kind: "edit-link"; idx: number }
+    | { kind: "question"; n: number };
+  let mode: Mode = { kind: "neutral" };
   let showTable = false;
 
   $: gj = {
@@ -33,7 +38,7 @@
   function newLink() {
     let f = blankLink(links.length);
     links = [...links, f];
-    editLinkIdx = links.length - 1;
+    mode = { kind: "edit-link", idx: links.length - 1 };
   }
 </script>
 
@@ -43,16 +48,17 @@
 
 <Layout>
   <div slot="left">
-    {#if editLinkIdx == null}
+    {#if mode.kind == "neutral"}
       <button on:click={newLink}>New link</button>
       <button on:click={clear}>Clear</button>
       <button on:click={() => (showTable = true)}>Table of questions</button>
 
+      Links:
       <ol>
         {#each links as link, idx}
           <li>
             <ClickLink
-              on:click={() => (editLinkIdx = idx)}
+              on:click={() => (mode = { kind: "edit-link", idx })}
               color={link.properties.color}
             >
               {link.properties.name}
@@ -60,15 +66,50 @@
           </li>
         {/each}
       </ol>
-    {:else}
-      <button on:click={() => (editLinkIdx = null)}>Done</button>
+
+      Questions:
+      <ol>
+        <li>
+          <ClickLink on:click={() => (mode = { kind: "edit-question", n: 1 })}>
+            Question 1
+          </ClickLink>:
+          <progress
+            value={links.filter((f) => f.properties.q1 != "").length}
+            max={links.length}
+          />
+        </li>
+        <li>
+          <ClickLink on:click={() => (mode = { kind: "edit-question", n: 2 })}>
+            Question 2
+          </ClickLink>:
+          <progress
+            value={links.filter((f) => f.properties.q2 != "").length}
+            max={links.length}
+          />
+        </li>
+        <li>
+          <ClickLink on:click={() => (mode = { kind: "edit-question", n: 3 })}>
+            Question 3
+          </ClickLink>:
+          <progress
+            value={links.filter((f) => f.properties.q3 != 0).length}
+            max={links.length}
+          />
+        </li>
+      </ol>
+    {:else if mode.kind == "edit-link"}
+      <button on:click={() => (mode = { kind: "neutral" })}>Done</button>
 
       <label>
         Name:
-        <input type="text" bind:value={links[editLinkIdx].properties.name} />
+        <input type="text" bind:value={links[mode.idx].properties.name} />
       </label>
 
-      <LinkForm bind:f={links[editLinkIdx]} />
+      <LinkForm bind:f={links[mode.idx]} />
+    {:else if mode.kind == "edit-question"}
+      <button on:click={() => (mode = { kind: "neutral" })}>Done</button>
+
+      <h2>Question {mode.n}</h2>
     {/if}
   </div>
 
@@ -76,7 +117,7 @@
     {#await getStyle(new URLSearchParams(window.location.search).get("google") || "") then style}
       <MapLibre {style} standardControls hash bind:map>
         <GeoJSON data={gj} generateId>
-          {#if editLinkIdx == null}
+          {#if mode.kind == "neutral" || mode.kind == "edit-question"}
             <LineLayer
               manageHoverState
               paint={{
@@ -84,26 +125,38 @@
                 "line-width": hoverStateFilter(6, 9),
               }}
               hoverCursor="pointer"
-              on:click={(e) => (editLinkIdx = e.detail.features[0].id)}
+              on:click={(e) =>
+                (mode = { kind: "edit-link", idx: e.detail.features[0].id })}
             />
-          {:else}
+          {:else if mode.kind == "edit-link"}
             <LineLayer
               paint={{
-                "line-color": "black",
-                "line-opacity": 0.5,
+                "line-color": [
+                  "case",
+                  ["==", ["id"], mode.idx],
+                  ["get", "color"],
+                  "black",
+                ],
+                "line-opacity": ["case", ["==", ["id"], mode.idx], 1.0, 0.5],
                 "line-width": 6,
               }}
             />
           {/if}
         </GeoJSON>
 
-        {#if editLinkIdx != null}
+        {#if mode.kind == "edit-link"}
           <EditLine
-            bind:f={links[editLinkIdx]}
-            onDone={() => (editLinkIdx = null)}
+            bind:f={links[mode.idx]}
+            onDone={() => (mode = { kind: "neutral" })}
           />
         {/if}
       </MapLibre>
     {/await}
   </div>
 </Layout>
+
+<style>
+  progress {
+    width: fit-content;
+  }
+</style>
