@@ -30,6 +30,10 @@
   "dependencies": {
     "@picocss/pico": "^2.0.6",
     "@turf/bbox": "^7.0.0",
+    "@turf/bearing": "^7.2.0",
+    "@turf/center": "^7.2.0",
+    "@turf/destination": "^7.2.0",
+    "@turf/distance": "^7.2.0",
     "svelte-maplibre": "^0.9.7",
     "svelte-utils": "github:a-b-street/svelte-utils"
   }

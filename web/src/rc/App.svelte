@@ -6,10 +6,11 @@
     mapContents,
     sidebarContents,
   } from "svelte-utils/two_column_layout";
-  import EditJATMode from "./EditJATMode.svelte";
   import EditLinkMode from "./EditLinkMode.svelte";
   import EditQuestionMode from "./EditQuestionMode.svelte";
   import { getStyle } from "./google";
+  import EditJATDetailMode from "./jat/EditJATDetailMode.svelte";
+  import EditJATMode from "./jat/EditJATMode.svelte";
   import NeutralMode from "./NeutralMode.svelte";
   import { map, mode, state } from "./state";
 
@@ -42,6 +43,8 @@
           <EditLinkMode idx={$mode.idx} />
         {:else if $mode.kind == "edit-jat"}
           <EditJATMode idx={$mode.idx} />
+        {:else if $mode.kind == "edit-jat-detail"}
+          <EditJATDetailMode junctionIdx={$mode.idx} stage={$mode.stage} />
         {:else if $mode.kind == "edit-question"}
           <EditQuestionMode qIdx={$mode.idx} />
         {/if}

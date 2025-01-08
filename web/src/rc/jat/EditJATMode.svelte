@@ -2,8 +2,8 @@
   import { tick } from "svelte";
   import { CircleLayer, GeoJSON, Marker } from "svelte-maplibre";
   import { SplitComponent } from "svelte-utils/two_column_layout";
-  import ShowAllLinks from "./ShowAllLinks.svelte";
-  import { gj, mode, state } from "./state";
+  import ShowAllLinks from "../ShowAllLinks.svelte";
+  import { gj, mode, state } from "../state";
 
   export let idx: number;
 
@@ -34,6 +34,19 @@
       Name:
       <input type="text" bind:value={$state.jats[idx].properties.name} />
     </label>
+
+    <button
+      on:click={() =>
+        ($mode = { kind: "edit-jat-detail", idx, stage: "existing" })}
+    >
+      Existing
+    </button>
+    <button
+      on:click={() =>
+        ($mode = { kind: "edit-jat-detail", idx, stage: "proposed" })}
+    >
+      Proposed
+    </button>
   </div>
 
   <div slot="map">

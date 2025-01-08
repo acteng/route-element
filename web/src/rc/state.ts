@@ -11,7 +11,7 @@ import { writable, type Writable } from "svelte/store";
 export let map: Writable<Map | undefined> = writable(undefined);
 export let state: Writable<State> = writable(loadState());
 
-type State = {
+export type State = {
   links: Link[];
   jats: JAT[];
 };
@@ -27,6 +27,7 @@ type Mode =
   | { kind: "neutral" }
   | { kind: "edit-link"; idx: number }
   | { kind: "edit-jat"; idx: number }
+  | { kind: "edit-jat-detail"; idx: number; stage: "existing" | "proposed" }
   | { kind: "edit-question"; idx: number };
 export let mode: Writable<Mode> = writable({ kind: "neutral" });
 
@@ -34,7 +35,38 @@ export type Link = Feature<
   LineString,
   { name: string; color: string; answers: string[] }
 >;
-export type JAT = Feature<Point, { name: string; color: string }>;
+export type JAT = Feature<
+  Point,
+  {
+    name: string;
+    color: string;
+    existing: JunctionAssessment;
+    proposed: JunctionAssessment;
+  }
+>;
+
+export interface JunctionAssessment {
+  arms: Arm[];
+  movements: Movement[];
+  notes: string;
+}
+
+export interface Arm {
+  point: Position;
+  name: string;
+}
+
+export type MovementKind = "cycling" | "walking & wheeling";
+
+export interface Movement {
+  point1: Position;
+  point2: Position;
+  point3: Position;
+  kind: MovementKind;
+  score: "0" | "1" | "2" | "X";
+  name: string;
+  notes: string;
+}
 
 export interface Question {
   name: string;
@@ -154,6 +186,16 @@ export function blankJAT(idx: number, pt: Position): JAT {
     properties: {
       name: "Untitled JAT",
       color: colors[idx % colors.length],
+      existing: {
+        arms: [],
+        movements: [],
+        notes: "",
+      },
+      proposed: {
+        arms: [],
+        movements: [],
+        notes: "",
+      },
     },
   };
 }
