@@ -1,7 +1,8 @@
 <script lang="ts">
-  import { GeoJSON, hoverStateFilter, LineLayer } from "svelte-maplibre";
   import { SplitComponent } from "svelte-utils/two_column_layout";
-  import { gj, links, mode, questions } from "./state";
+  import ShowAllJATs from "./ShowAllJATs.svelte";
+  import ShowAllLinks from "./ShowAllLinks.svelte";
+  import { mode, questions, state } from "./state";
 
   export let qIdx: number;
 
@@ -20,7 +21,7 @@
 
     <h2>{questions[qIdx].name}: {questions[qIdx].description}</h2>
     <ol>
-      {#each $links as link}
+      {#each $state.links as link}
         <li>
           <span style:color={link.properties.color}>
             {link.properties.name}
@@ -37,17 +38,7 @@
   </div>
 
   <div slot="map">
-    <GeoJSON data={$gj} generateId>
-      <LineLayer
-        manageHoverState
-        paint={{
-          "line-color": ["get", "color"],
-          "line-width": hoverStateFilter(6, 9),
-        }}
-        hoverCursor="pointer"
-        on:click={(e) =>
-          ($mode = { kind: "edit-link", idx: e.detail.features[0].id })}
-      />
-    </GeoJSON>
+    <ShowAllLinks />
+    <ShowAllJATs />
   </div>
 </SplitComponent>

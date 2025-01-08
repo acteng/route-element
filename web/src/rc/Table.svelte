@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Modal } from "svelte-utils";
-  import { links, questions } from "./state";
+  import { questions, state } from "./state";
 </script>
 
 <Modal on:close>
@@ -8,7 +8,7 @@
     <thead>
       <tr>
         <th></th>
-        {#each $links as link}
+        {#each $state.links as link}
           <th style:color={link.properties.color}>{link.properties.name}</th>
         {/each}
       </tr>
@@ -17,7 +17,7 @@
       {#each questions as q, idx}
         <tr>
           <th>{q.name}</th>
-          {#each $links as link}
+          {#each $state.links as link}
             {@const value = link.properties.answers[idx]}
             <td style:background={value == "" ? "red" : "green"}>{value}</td>
           {/each}

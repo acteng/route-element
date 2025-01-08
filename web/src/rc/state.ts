@@ -1,17 +1,32 @@
-import type { Feature, LineString } from "geojson";
-import { derived, writable, type Writable } from "svelte/store";
+import type {
+  Feature,
+  FeatureCollection,
+  LineString,
+  Point,
+  Position,
+} from "geojson";
+import type { Map } from "maplibre-gl";
+import { writable, type Writable } from "svelte/store";
 
-export let links: Writable<Link[]> = writable(loadState());
-export let gj = derived(links, (links) => {
+export let map: Writable<Map | undefined> = writable(undefined);
+export let state: Writable<State> = writable(loadState());
+
+type State = {
+  links: Link[];
+  jats: JAT[];
+};
+
+export function gj(features: Feature[]): FeatureCollection {
   return {
     type: "FeatureCollection" as const,
-    features: links,
+    features,
   };
-});
+}
 
 type Mode =
   | { kind: "neutral" }
   | { kind: "edit-link"; idx: number }
+  | { kind: "edit-jat"; idx: number }
   | { kind: "edit-question"; idx: number };
 export let mode: Writable<Mode> = writable({ kind: "neutral" });
 
@@ -19,6 +34,7 @@ export type Link = Feature<
   LineString,
   { name: string; color: string; answers: string[] }
 >;
+export type JAT = Feature<Point, { name: string; color: string }>;
 
 export interface Question {
   name: string;
@@ -97,23 +113,23 @@ export let questions: Question[] = [
   },
 ];
 
-export function blankLink(idx: number): Link {
-  // Vivid from https://carto.com/carto-colors/
-  let colors = [
-    "#66C5CC",
-    "#F6CF71",
-    "#F89C74",
-    "#DCB0F2",
-    "#87C55F",
-    "#9EB9F3",
-    "#FE88B1",
-    "#C9DB74",
-    "#8BE0A4",
-    "#B497E7",
-    "#D3B484",
-    "#B3B3B3",
-  ];
+// Vivid from https://carto.com/carto-colors/
+let colors = [
+  "#66C5CC",
+  "#F6CF71",
+  "#F89C74",
+  "#DCB0F2",
+  "#87C55F",
+  "#9EB9F3",
+  "#FE88B1",
+  "#C9DB74",
+  "#8BE0A4",
+  "#B497E7",
+  "#D3B484",
+  "#B3B3B3",
+];
 
+export function blankLink(idx: number): Link {
   return {
     type: "Feature" as const,
     geometry: {
@@ -128,12 +144,26 @@ export function blankLink(idx: number): Link {
   };
 }
 
-function loadState(): Link[] {
+export function blankJAT(idx: number, pt: Position): JAT {
+  return {
+    type: "Feature" as const,
+    geometry: {
+      type: "Point" as const,
+      coordinates: pt,
+    },
+    properties: {
+      name: "Untitled JAT",
+      color: colors[idx % colors.length],
+    },
+  };
+}
+
+function loadState(): State {
   try {
-    let gj = JSON.parse(window.localStorage.getItem("tmp-rcv2") || "");
-    if ("features" in gj && "answers" in gj.features[0].properties) {
-      return gj.features;
+    let x = JSON.parse(window.localStorage.getItem("tmp-rcv2") || "");
+    if ("links" in x && "jats" in x) {
+      return x;
     }
   } catch (err) {}
-  return [];
+  return { links: [], jats: [] };
 }

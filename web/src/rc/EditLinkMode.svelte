@@ -3,11 +3,12 @@
   import { GeoJSON, LineLayer } from "svelte-maplibre";
   import { SplitComponent } from "svelte-utils/two_column_layout";
   import DrawLine from "./DrawLine.svelte";
-  import { gj, links, mode, questions } from "./state";
+  import ShowAllJATs from "./ShowAllJATs.svelte";
+  import { gj, mode, questions, state } from "./state";
 
   export let idx: number;
 
-  $: valid = $links[idx].geometry.coordinates.length >= 2;
+  $: valid = $state.links[idx].geometry.coordinates.length >= 2;
 
   function onKeyDown(e: KeyboardEvent) {
     if (e.key == "Escape" && valid) {
@@ -19,8 +20,8 @@
     if (window.confirm("Really delete this link?")) {
       $mode = { kind: "neutral" };
       await tick();
-      $links.splice(idx, 1);
-      $links = $links;
+      $state.links.splice(idx, 1);
+      $state.links = $state.links;
     }
   }
 </script>
@@ -39,13 +40,13 @@
 
     <label>
       Name:
-      <input type="text" bind:value={$links[idx].properties.name} />
+      <input type="text" bind:value={$state.links[idx].properties.name} />
     </label>
 
     {#each questions as q, qIdx}
       <label>
         {q.name}: {q.description}
-        <select bind:value={$links[idx].properties.answers[qIdx]}>
+        <select bind:value={$state.links[idx].properties.answers[qIdx]}>
           {#each q.choices as value}
             <option {value}>{value}</option>
           {/each}
@@ -55,7 +56,7 @@
   </div>
 
   <div slot="map">
-    <GeoJSON data={$gj} generateId>
+    <GeoJSON data={gj($state.links)} generateId>
       <LineLayer
         paint={{
           "line-color": [
@@ -70,6 +71,8 @@
       />
     </GeoJSON>
 
-    <DrawLine bind:f={$links[idx]} />
+    <ShowAllJATs />
+
+    <DrawLine bind:f={$state.links[idx]} />
   </div>
 </SplitComponent>

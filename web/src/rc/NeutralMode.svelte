@@ -1,21 +1,44 @@
 <script lang="ts">
-  import { GeoJSON, hoverStateFilter, LineLayer } from "svelte-maplibre";
+  import {
+    CircleLayer,
+    GeoJSON,
+    hoverStateFilter,
+    LineLayer,
+  } from "svelte-maplibre";
   import { downloadGeneratedFile } from "svelte-utils";
   import { SplitComponent } from "svelte-utils/two_column_layout";
   import ClickLink from "./ClickLink.svelte";
-  import { blankLink, gj, links, mode, questions } from "./state";
+  import {
+    blankJAT,
+    blankLink,
+    gj,
+    map,
+    mode,
+    questions,
+    state,
+  } from "./state";
   import Table from "./Table.svelte";
 
   let showTable = false;
 
   function clear() {
-    $links = [];
+    $state.links = [];
+    $state.jats = [];
   }
 
   function newLink() {
-    let f = blankLink($links.length);
-    $links = [...$links, f];
-    $mode = { kind: "edit-link", idx: $links.length - 1 };
+    let f = blankLink($state.links.length);
+    $state.links = [...$state.links, f];
+    $mode = { kind: "edit-link", idx: $state.links.length - 1 };
+  }
+
+  function newJAT() {
+    if (!$map) {
+      return;
+    }
+    let f = blankJAT($state.jats.length, $map.getCenter().toArray());
+    $state.jats = [...$state.jats, f];
+    $mode = { kind: "edit-jat", idx: $state.jats.length - 1 };
   }
 </script>
 
@@ -26,20 +49,26 @@
 <SplitComponent>
   <div slot="sidebar">
     <div>
-      <button on:click={newLink}>New link</button>
-      <button on:click={clear}>Clear</button>
-      <button on:click={() => (showTable = true)}>Table of questions</button>
       <button
+        class="secondary"
         on:click={() =>
-          downloadGeneratedFile("rcv2.geojson", JSON.stringify($gj))}
+          downloadGeneratedFile("rcv2.geojson", JSON.stringify($state))}
       >
         Download
       </button>
+      <button class="secondary" on:click={clear}>Clear</button>
+    </div>
+
+    <hr />
+
+    <div>
+      <button on:click={newLink}>New link</button>
+      <button on:click={() => (showTable = true)}>Table of questions</button>
     </div>
 
     Links:
     <ol>
-      {#each $links as link, idx}
+      {#each $state.links as link, idx}
         <li>
           <ClickLink
             on:click={() => ($mode = { kind: "edit-link", idx })}
@@ -59,16 +88,38 @@
             {q.name}
           </ClickLink>:
           <progress
-            value={$links.filter((f) => f.properties.answers[idx] != "").length}
-            max={$links.length}
+            value={$state.links.filter((f) => f.properties.answers[idx] != "")
+              .length}
+            max={$state.links.length}
           />
+        </li>
+      {/each}
+    </ol>
+
+    <hr />
+
+    JATs:
+
+    <div>
+      <button on:click={newJAT}>New JAT</button>
+    </div>
+
+    <ol>
+      {#each $state.jats as jat, idx}
+        <li>
+          <ClickLink
+            on:click={() => ($mode = { kind: "edit-jat", idx })}
+            color={jat.properties.color}
+          >
+            {jat.properties.name}
+          </ClickLink>
         </li>
       {/each}
     </ol>
   </div>
 
   <div slot="map">
-    <GeoJSON data={$gj} generateId>
+    <GeoJSON data={gj($state.links)} generateId>
       <LineLayer
         manageHoverState
         paint={{
@@ -78,6 +129,19 @@
         hoverCursor="pointer"
         on:click={(e) =>
           ($mode = { kind: "edit-link", idx: e.detail.features[0].id })}
+      />
+    </GeoJSON>
+
+    <GeoJSON data={gj($state.jats)} generateId>
+      <CircleLayer
+        manageHoverState
+        paint={{
+          "circle-color": ["get", "color"],
+          "circle-radius": hoverStateFilter(20, 25),
+        }}
+        hoverCursor="pointer"
+        on:click={(e) =>
+          ($mode = { kind: "edit-jat", idx: e.detail.features[0].id })}
       />
     </GeoJSON>
   </div>
