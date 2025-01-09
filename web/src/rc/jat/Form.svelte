@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Picker from "../Picker.svelte";
   import { state } from "../state";
   import Guidance from "./guidance/Guidance.svelte";
 
@@ -22,44 +23,26 @@
   />
 </label>
 
-<fieldset>
-  <label>
-    <input
-      type="radio"
-      value="cycling"
-      bind:group={$state.jats[junctionIdx].properties[stage].movements[idx]
-        .kind}
-    />
-    Cycling
-  </label>
-  <label>
-    <input
-      type="radio"
-      value="walking & wheeling"
-      bind:group={$state.jats[junctionIdx].properties[stage].movements[idx]
-        .kind}
-    />
-    Walking & Wheeling
-  </label>
-</fieldset>
+<Picker
+  k="horiz-radio"
+  label="User"
+  bind:value={$state.jats[junctionIdx].properties[stage].movements[idx].kind}
+  choices={[
+    ["cycling", "Cycling"],
+    ["walking & wheeling", "Walking & Wheeling"],
+  ]}
+/>
 
 {#if $state.jats[junctionIdx].properties[stage].movements[idx].kind == "cycling"}
   <Guidance />
 {/if}
 
-<fieldset>
-  {#each scoreChoices as [value, label]}
-    <label>
-      <input
-        type="radio"
-        {value}
-        bind:group={$state.jats[junctionIdx].properties[stage].movements[idx]
-          .score}
-      />
-      {label}
-    </label>
-  {/each}
-</fieldset>
+<Picker
+  k="horiz-radio"
+  label="Score"
+  bind:value={$state.jats[junctionIdx].properties[stage].movements[idx].score}
+  choices={scoreChoices}
+/>
 
 <label>
   Comments

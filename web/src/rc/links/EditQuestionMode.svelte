@@ -1,5 +1,6 @@
 <script lang="ts">
   import { SplitComponent } from "svelte-utils/two_column_layout";
+  import Picker from "../Picker.svelte";
   import ShowAllLayers from "../ShowAllLayers.svelte";
   import { mode, state } from "../state";
   import { questions } from "./types";
@@ -27,11 +28,12 @@
             {link.properties.name}
           </span>
 
-          <select bind:value={link.properties.answers[qIdx]}>
-            {#each questions[qIdx].choices as value}
-              <option {value}>{value}</option>
-            {/each}
-          </select>
+          <Picker
+            k="horiz-radio"
+            label=""
+            bind:value={link.properties.answers[qIdx]}
+            choices={questions[qIdx].choices}
+          />
         </li>
       {/each}
     </ol>

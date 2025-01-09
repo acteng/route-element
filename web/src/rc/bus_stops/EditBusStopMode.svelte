@@ -4,6 +4,7 @@
   import { SplitComponent } from "svelte-utils/two_column_layout";
   import { scores } from "../common";
   import DraggableMarker from "../DraggableMarker.svelte";
+  import Picker from "../Picker.svelte";
   import ShowAllLayers from "../ShowAllLayers.svelte";
   import { gj, mode, state } from "../state";
 
@@ -37,14 +38,12 @@
       <input type="text" bind:value={$state.bus_stops[idx].properties.name} />
     </label>
 
-    <label>
-      ST20: bus stops
-      <select bind:value={$state.bus_stops[idx].properties.st20}>
-        {#each scores() as value}
-          <option {value}>{value}</option>
-        {/each}
-      </select>
-    </label>
+    <Picker
+      k="horiz-radio"
+      label="ST20: bus stops"
+      bind:value={$state.bus_stops[idx].properties.st20}
+      choices={scores()}
+    />
   </div>
 
   <div slot="map">

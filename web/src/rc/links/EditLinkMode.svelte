@@ -3,6 +3,7 @@
   import { GeoJSON, LineLayer } from "svelte-maplibre";
   import { SplitComponent } from "svelte-utils/two_column_layout";
   import DrawLine from "../DrawLine.svelte";
+  import Picker from "../Picker.svelte";
   import ShowAllLayers from "../ShowAllLayers.svelte";
   import { gj, mode, state } from "../state";
   import { questions } from "./types";
@@ -45,14 +46,12 @@
     </label>
 
     {#each questions as q, qIdx}
-      <label>
-        {q.name}: {q.description}
-        <select bind:value={$state.links[idx].properties.answers[qIdx]}>
-          {#each q.choices as value}
-            <option {value}>{value}</option>
-          {/each}
-        </select>
-      </label>
+      <Picker
+        k="horiz-radio"
+        label={`${q.name}: ${q.description}`}
+        bind:value={$state.links[idx].properties.answers[qIdx]}
+        choices={q.choices}
+      />
     {/each}
   </div>
 

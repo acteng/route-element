@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Modal } from "svelte-utils";
+  import Picker from "../../Picker.svelte";
   import { getGuidance, getMovementTypes, junctionTypes } from "./data";
 
   let open = false;
@@ -30,30 +31,22 @@
     </p>
 
     <div style="display: flex; justify-content: space-between">
-      Type of junction:
-      <fieldset>
-        {#each junctionTypes as value}
-          <label>
-            <input
-              type="radio"
-              {value}
-              bind:group={junctionType}
-              on:change={resetMovementType}
-            />
-            {value}
-          </label>
-        {/each}
-      </fieldset>
+      <Picker
+        k="vert-radio"
+        label="Type of junction"
+        bind:value={junctionType}
+        on:change={resetMovementType}
+        choices={junctionTypes}
+      />
 
-      Type of movement:
-      <fieldset>
-        {#each getMovementTypes(junctionType) as value}
-          <label>
-            <input type="radio" {value} bind:group={movementType} />
-            {value}
-          </label>
-        {/each}
-      </fieldset>
+      {#key junctionType}
+        <Picker
+          k="vert-radio"
+          label="Type of movement"
+          bind:value={movementType}
+          choices={getMovementTypes(junctionType)}
+        />
+      {/key}
     </div>
 
     <table>
