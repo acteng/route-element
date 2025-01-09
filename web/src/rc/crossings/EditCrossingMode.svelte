@@ -1,8 +1,9 @@
 <script lang="ts">
   import { tick } from "svelte";
-  import { CircleLayer, GeoJSON, Marker } from "svelte-maplibre";
+  import { CircleLayer, GeoJSON } from "svelte-maplibre";
   import { SplitComponent } from "svelte-utils/two_column_layout";
   import { scores } from "../common";
+  import DraggableMarker from "../DraggableMarker.svelte";
   import ShowAllLayers from "../ShowAllLayers.svelte";
   import { gj, mode, state } from "../state";
 
@@ -59,24 +60,9 @@
       />
     </GeoJSON>
 
-    <Marker draggable bind:lngLat={$state.crossings[idx].geometry.coordinates}>
-      <span
-        class="dot"
-        style:background-color={$state.crossings[idx].properties.color}
-      />
-    </Marker>
+    <DraggableMarker
+      bind:lngLat={$state.crossings[idx].geometry.coordinates}
+      color={$state.crossings[idx].properties.color}
+    />
   </div>
 </SplitComponent>
-
-<style>
-  .dot {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    display: flex;
-  }
-
-  .dot:hover {
-    cursor: pointer;
-  }
-</style>
