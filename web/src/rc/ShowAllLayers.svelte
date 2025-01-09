@@ -2,7 +2,13 @@
   import { CircleLayer, GeoJSON, LineLayer } from "svelte-maplibre";
   import { gj, state } from "./state";
 
-  export let except: "" | "links" | "bus_stops" | "crossings" | "jats";
+  export let except:
+    | ""
+    | "links"
+    | "bus_stops"
+    | "crossings"
+    | "jats"
+    | "side_roads";
   export let showLinkColor = false;
 </script>
 
@@ -47,6 +53,17 @@
         "circle-stroke-width": 5,
         "circle-stroke-color": "black",
         "circle-radius": 20,
+      }}
+    />
+  </GeoJSON>
+{/if}
+
+{#if except != "side_roads"}
+  <GeoJSON data={gj($state.side_roads)}>
+    <LineLayer
+      paint={{
+        "line-color": "black",
+        "line-width": 3,
       }}
     />
   </GeoJSON>

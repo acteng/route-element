@@ -14,6 +14,7 @@
   import EditLinkMode from "./links/EditLinkMode.svelte";
   import EditQuestionMode from "./links/EditQuestionMode.svelte";
   import NeutralMode from "./NeutralMode.svelte";
+  import EditSideRoadMode from "./side_roads/EditSideRoadMode.svelte";
   import { map, mode, state } from "./state";
 
   $: window.localStorage.setItem("tmp-rcv2", JSON.stringify($state));
@@ -51,6 +52,8 @@
           <EditBusStopMode idx={$mode.idx} />
         {:else if $mode.kind == "edit-crossing"}
           <EditCrossingMode idx={$mode.idx} />
+        {:else if $mode.kind == "edit-side-road"}
+          <EditSideRoadMode idx={$mode.idx} />
         {:else if $mode.kind == "edit-question"}
           <EditQuestionMode qIdx={$mode.idx} />
         {/if}

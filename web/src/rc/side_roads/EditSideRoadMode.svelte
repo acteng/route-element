@@ -2,27 +2,27 @@
   import { tick } from "svelte";
   import { GeoJSON, LineLayer } from "svelte-maplibre";
   import { SplitComponent } from "svelte-utils/two_column_layout";
+  import { scores } from "../common";
   import DrawLine from "../DrawLine.svelte";
   import ShowAllLayers from "../ShowAllLayers.svelte";
   import { gj, mode, state } from "../state";
-  import { questions } from "./types";
 
   export let idx: number;
 
-  $: valid = $state.links[idx].geometry.coordinates.length >= 2;
+  $: valid = $state.side_roads[idx].geometry.coordinates.length >= 2;
 
   function onKeyDown(e: KeyboardEvent) {
-    if (e.key == "Escape" && valid) {
+    if (e.key == "Escape") {
       $mode = { kind: "neutral" };
     }
   }
 
   async function remove() {
-    if (window.confirm("Really delete this link?")) {
+    if (window.confirm("Really delete this side road?")) {
       $mode = { kind: "neutral" };
       await tick();
-      $state.links.splice(idx, 1);
-      $state.links = $state.links;
+      $state.side_roads.splice(idx, 1);
+      $state.side_roads = $state.side_roads;
     }
   }
 </script>
@@ -34,32 +34,30 @@
     <button on:click={() => ($mode = { kind: "neutral" })} disabled={!valid}>
       Done
     </button>
-    <button on:click={remove}>Delete link</button>
+    <button on:click={remove}>Delete side road</button>
     {#if !valid}
-      <p>A link needs at least two points</p>
+      <p>A side road needs at least two points</p>
     {/if}
 
     <label>
       Name:
-      <input type="text" bind:value={$state.links[idx].properties.name} />
+      <input type="text" bind:value={$state.side_roads[idx].properties.name} />
     </label>
 
-    {#each questions as q, qIdx}
-      <label>
-        {q.name}: {q.description}
-        <select bind:value={$state.links[idx].properties.answers[qIdx]}>
-          {#each q.choices as value}
-            <option {value}>{value}</option>
-          {/each}
-        </select>
-      </label>
-    {/each}
+    <label>
+      SA01: conflict at side roads and priority junctions
+      <select bind:value={$state.side_roads[idx].properties.sa01}>
+        {#each scores() as value}
+          <option {value}>{value}</option>
+        {/each}
+      </select>
+    </label>
   </div>
 
   <div slot="map">
-    <ShowAllLayers except="links" />
+    <ShowAllLayers except="side_roads" />
 
-    <GeoJSON data={gj($state.links)} generateId>
+    <GeoJSON data={gj($state.side_roads)} generateId>
       <LineLayer
         paint={{
           "line-color": [
@@ -68,11 +66,11 @@
             ["get", "color"],
             "black",
           ],
-          "line-width": 6,
+          "line-width": 3,
         }}
       />
     </GeoJSON>
 
-    <DrawLine bind:f={$state.links[idx]} />
+    <DrawLine bind:f={$state.side_roads[idx]} />
   </div>
 </SplitComponent>

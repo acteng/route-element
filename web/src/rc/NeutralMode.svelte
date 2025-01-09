@@ -12,6 +12,7 @@
   import CrossingSidebar from "./crossings/Sidebar.svelte";
   import JATSidebar from "./jat/Sidebar.svelte";
   import LinkSidebar from "./links/Sidebar.svelte";
+  import SideRoadSidebar from "./side_roads/Sidebar.svelte";
   import { gj, mode, state } from "./state";
 
   function clear() {
@@ -19,6 +20,7 @@
     $state.jats = [];
     $state.bus_stops = [];
     $state.crossings = [];
+    $state.side_roads = [];
   }
 </script>
 
@@ -50,6 +52,10 @@
     <hr />
 
     <CrossingSidebar />
+
+    <hr />
+
+    <SideRoadSidebar />
   </div>
 
   <div slot="map">
@@ -108,6 +114,22 @@
         on:click={(e) =>
           ($mode = {
             kind: "edit-crossing",
+            idx: numId(e.detail.features[0].id),
+          })}
+      />
+    </GeoJSON>
+
+    <GeoJSON data={gj($state.side_roads)} generateId>
+      <LineLayer
+        manageHoverState
+        paint={{
+          "line-color": ["get", "color"],
+          "line-width": hoverStateFilter(3, 6),
+        }}
+        hoverCursor="pointer"
+        on:click={(e) =>
+          ($mode = {
+            kind: "edit-side-road",
             idx: numId(e.detail.features[0].id),
           })}
       />
