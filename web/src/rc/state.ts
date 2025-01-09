@@ -88,7 +88,7 @@ export interface Question {
 // Per roundabout / signal junction: SA02
 // Derived from crossings and area: SA06, SA07, SA10
 
-function scores(): string[] {
+export function scores(): string[] {
   return ["", "2", "1", "0", "Critical"];
 }
 

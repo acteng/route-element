@@ -4,7 +4,7 @@
   import { SplitComponent } from "svelte-utils/two_column_layout";
   import ShowAllJATs from "../ShowAllJATs.svelte";
   import ShowAllLinks from "../ShowAllLinks.svelte";
-  import { gj, mode, state } from "../state";
+  import { gj, mode, scores, state } from "../state";
 
   export let idx: number;
 
@@ -36,7 +36,14 @@
       <input type="text" bind:value={$state.bus_stops[idx].properties.name} />
     </label>
 
-    TODO question
+    <label>
+      ST20: bus stops
+      <select bind:value={$state.bus_stops[idx].properties.st20}>
+        {#each scores() as value}
+          <option {value}>{value}</option>
+        {/each}
+      </select>
+    </label>
   </div>
 
   <div slot="map">
