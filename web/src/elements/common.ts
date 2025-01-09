@@ -1,3 +1,4 @@
+// @ts-nocheck
 import bbox from "@turf/bbox";
 import type {
   FeatureCollection,

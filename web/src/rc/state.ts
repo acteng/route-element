@@ -1,12 +1,9 @@
-import type {
-  Feature,
-  FeatureCollection,
-  LineString,
-  Point,
-  Position,
-} from "geojson";
+import type { Feature, FeatureCollection, LineString, Point } from "geojson";
 import type { Map } from "maplibre-gl";
 import { writable, type Writable } from "svelte/store";
+
+// geojson Position isn't right for us
+export type Position = [number, number];
 
 export let map: Writable<Map | undefined> = writable(undefined);
 export let state: Writable<State> = writable(loadState());

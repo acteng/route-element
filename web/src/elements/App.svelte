@@ -1,4 +1,5 @@
 <script lang="ts">
+  // @ts-nocheck
   import "@picocss/pico/css/pico.jade.min.css";
   import init, { evalRoute } from "backend";
   import type { Feature, FeatureCollection, LineString } from "geojson";

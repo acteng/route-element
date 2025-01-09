@@ -1,7 +1,7 @@
 <script lang="ts">
   import bearing from "@turf/bearing";
   import destination from "@turf/destination";
-  import type { Feature, FeatureCollection, Position } from "geojson";
+  import type { Feature, FeatureCollection } from "geojson";
   import type { MapMouseEvent } from "maplibre-gl";
   import {
     CircleLayer,
@@ -16,7 +16,14 @@
   import { Popup } from "svelte-utils/map";
   import movementUrl from "../assets/movement.svg?url";
   import panUrl from "../assets/pan.svg?url";
-  import { map, state, type Arm, type Movement, type State } from "../state";
+  import {
+    map,
+    state,
+    type Arm,
+    type Movement,
+    type Position,
+    type State,
+  } from "../state";
   import { colors } from "./colors";
 
   type Mode =

@@ -8,6 +8,7 @@
   import { downloadGeneratedFile } from "svelte-utils";
   import { SplitComponent } from "svelte-utils/two_column_layout";
   import ClickLink from "./ClickLink.svelte";
+  import { numId } from "./common";
   import Table from "./links/Table.svelte";
   import {
     blankBusStop,
@@ -160,7 +161,7 @@
         }}
         hoverCursor="pointer"
         on:click={(e) =>
-          ($mode = { kind: "edit-link", idx: e.detail.features[0].id })}
+          ($mode = { kind: "edit-link", idx: numId(e.detail.features[0].id) })}
       />
     </GeoJSON>
 
@@ -175,7 +176,7 @@
         }}
         hoverCursor="pointer"
         on:click={(e) =>
-          ($mode = { kind: "edit-jat", idx: e.detail.features[0].id })}
+          ($mode = { kind: "edit-jat", idx: numId(e.detail.features[0].id) })}
       />
     </GeoJSON>
 
@@ -188,7 +189,10 @@
         }}
         hoverCursor="pointer"
         on:click={(e) =>
-          ($mode = { kind: "edit-bus-stop", idx: e.detail.features[0].id })}
+          ($mode = {
+            kind: "edit-bus-stop",
+            idx: numId(e.detail.features[0].id),
+          })}
       />
     </GeoJSON>
   </div>
