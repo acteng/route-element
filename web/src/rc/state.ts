@@ -12,6 +12,7 @@ export type State = {
   links: Link[];
   jats: JAT[];
   bus_stops: BusStop[];
+  crossings: Crossing[];
 };
 
 export function gj(features: Feature[]): FeatureCollection {
@@ -27,6 +28,7 @@ type Mode =
   | { kind: "edit-jat"; idx: number }
   | { kind: "edit-jat-detail"; idx: number; stage: "existing" | "proposed" }
   | { kind: "edit-bus-stop"; idx: number }
+  | { kind: "edit-crossing"; idx: number }
   | { kind: "edit-question"; idx: number };
 export let mode: Writable<Mode> = writable({ kind: "neutral" });
 
@@ -34,6 +36,7 @@ export type Link = Feature<
   LineString,
   { name: string; color: string; answers: string[] }
 >;
+
 export type JAT = Feature<
   Point,
   {
@@ -43,6 +46,7 @@ export type JAT = Feature<
     proposed: JunctionAssessment;
   }
 >;
+
 export type BusStop = Feature<
   Point,
   {
@@ -50,6 +54,16 @@ export type BusStop = Feature<
     color: string;
     // TODO Also partly sa05?
     st20: string;
+  }
+>;
+
+export type Crossing = Feature<
+  Point,
+  {
+    name: string;
+    color: string;
+    // TODO Likely some more
+    sa10: string;
   }
 >;
 
@@ -201,6 +215,21 @@ export function blankBusStop(idx: number, pt: Position): BusStop {
   };
 }
 
+export function blankCrossing(idx: number, pt: Position): Crossing {
+  return {
+    type: "Feature" as const,
+    geometry: {
+      type: "Point" as const,
+      coordinates: pt,
+    },
+    properties: {
+      name: "Untitled crossing",
+      color: colors[idx % colors.length],
+      sa10: "",
+    },
+  };
+}
+
 export function blankJAT(idx: number, pt: Position): JAT {
   return {
     type: "Feature" as const,
@@ -228,9 +257,9 @@ export function blankJAT(idx: number, pt: Position): JAT {
 function loadState(): State {
   try {
     let x = JSON.parse(window.localStorage.getItem("tmp-rcv2") || "");
-    if ("links" in x && "jats" in x && "bus_stops" in x) {
+    if ("links" in x && "jats" in x && "bus_stops" && "crossings" in x) {
       return x;
     }
   } catch (err) {}
-  return { links: [], jats: [], bus_stops: [] };
+  return { links: [], jats: [], bus_stops: [], crossings: [] };
 }

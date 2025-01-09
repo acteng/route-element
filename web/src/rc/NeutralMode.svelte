@@ -12,6 +12,7 @@
   import Table from "./links/Table.svelte";
   import {
     blankBusStop,
+    blankCrossing,
     blankJAT,
     blankLink,
     gj,
@@ -27,6 +28,7 @@
     $state.links = [];
     $state.jats = [];
     $state.bus_stops = [];
+    $state.crossings = [];
   }
 
   function newLink() {
@@ -51,6 +53,15 @@
     let f = blankBusStop($state.bus_stops.length, $map.getCenter().toArray());
     $state.bus_stops = [...$state.bus_stops, f];
     $mode = { kind: "edit-bus-stop", idx: $state.bus_stops.length - 1 };
+  }
+
+  function newCrossing() {
+    if (!$map) {
+      return;
+    }
+    let f = blankCrossing($state.crossings.length, $map.getCenter().toArray());
+    $state.crossings = [...$state.crossings, f];
+    $mode = { kind: "edit-crossing", idx: $state.crossings.length - 1 };
   }
 </script>
 
@@ -149,6 +160,27 @@
         </li>
       {/each}
     </ol>
+
+    <hr />
+
+    Crossings:
+
+    <div>
+      <button on:click={newCrossing}>New crossing</button>
+    </div>
+
+    <ol>
+      {#each $state.crossings as crossing, idx}
+        <li>
+          <ClickLink
+            on:click={() => ($mode = { kind: "edit-crossing", idx })}
+            color={crossing.properties.color}
+          >
+            {crossing.properties.name}
+          </ClickLink>
+        </li>
+      {/each}
+    </ol>
   </div>
 
   <div slot="map">
@@ -191,6 +223,22 @@
         on:click={(e) =>
           ($mode = {
             kind: "edit-bus-stop",
+            idx: numId(e.detail.features[0].id),
+          })}
+      />
+    </GeoJSON>
+
+    <GeoJSON data={gj($state.crossings)} generateId>
+      <CircleLayer
+        manageHoverState
+        paint={{
+          "circle-color": ["get", "color"],
+          "circle-radius": hoverStateFilter(10, 15),
+        }}
+        hoverCursor="pointer"
+        on:click={(e) =>
+          ($mode = {
+            kind: "edit-crossing",
             idx: numId(e.detail.features[0].id),
           })}
       />

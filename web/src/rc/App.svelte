@@ -7,6 +7,7 @@
     sidebarContents,
   } from "svelte-utils/two_column_layout";
   import EditBusStopMode from "./bus_stops/EditBusStopMode.svelte";
+  import EditCrossingMode from "./crossings/EditCrossingMode.svelte";
   import { getStyle } from "./google";
   import EditJATDetailMode from "./jat/EditJATDetailMode.svelte";
   import EditJATMode from "./jat/EditJATMode.svelte";
@@ -48,6 +49,8 @@
           <EditJATDetailMode junctionIdx={$mode.idx} stage={$mode.stage} />
         {:else if $mode.kind == "edit-bus-stop"}
           <EditBusStopMode idx={$mode.idx} />
+        {:else if $mode.kind == "edit-crossing"}
+          <EditCrossingMode idx={$mode.idx} />
         {:else if $mode.kind == "edit-question"}
           <EditQuestionMode qIdx={$mode.idx} />
         {/if}
