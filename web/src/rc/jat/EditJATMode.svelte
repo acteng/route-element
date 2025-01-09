@@ -56,7 +56,9 @@
       <CircleLayer
         filter={["!=", ["id"], idx]}
         paint={{
-          "circle-color": "black",
+          "circle-color": "rgba(0,0,0,0)",
+          "circle-stroke-width": 5,
+          "circle-stroke-color": "black",
           "circle-radius": 20,
         }}
       />
@@ -65,7 +67,7 @@
     <Marker draggable bind:lngLat={$state.jats[idx].geometry.coordinates}>
       <span
         class="dot"
-        style:background-color={$state.jats[idx].properties.color}
+        style:border-color={$state.jats[idx].properties.color}
       />
     </Marker>
   </div>
@@ -73,14 +75,15 @@
 
 <style>
   .dot {
-    width: 30px;
-    height: 30px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     display: flex;
+    border-width: 5px;
+    border-style: solid;
   }
 
   .dot:hover {
-    border: 1px solid black;
     cursor: pointer;
   }
 </style>

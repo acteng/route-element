@@ -65,7 +65,6 @@
             ["get", "color"],
             "black",
           ],
-          "line-opacity": ["case", ["==", ["id"], idx], 1.0, 0.5],
           "line-width": 6,
         }}
       />

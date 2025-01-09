@@ -224,6 +224,7 @@
       <button on:click={deleteItem}>Delete</button>
     {:else}
       <button on:click={() => (mode = { mode: "select" })}>Done</button>
+      <button on:click={deleteItem}>Delete</button>
 
       <label>
         Arm name
@@ -244,7 +245,9 @@
       <CircleLayer
         filter={["!=", ["id"], junctionIdx]}
         paint={{
-          "circle-color": "black",
+          "circle-color": "rgba(0,0,0,0)",
+          "circle-stroke-width": 5,
+          "circle-stroke-color": "black",
           "circle-radius": 20,
         }}
       />

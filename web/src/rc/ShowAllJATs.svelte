@@ -6,7 +6,9 @@
 <GeoJSON data={gj($state.jats)}>
   <CircleLayer
     paint={{
-      "circle-color": ["get", "color"],
+      "circle-color": "rgba(0,0,0,0)",
+      "circle-stroke-width": 5,
+      "circle-stroke-color": "black",
       "circle-radius": 20,
     }}
   />

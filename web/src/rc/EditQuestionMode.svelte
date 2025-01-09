@@ -38,7 +38,7 @@
   </div>
 
   <div slot="map">
-    <ShowAllLinks />
+    <ShowAllLinks showColor />
     <ShowAllJATs />
   </div>
 </SplitComponent>

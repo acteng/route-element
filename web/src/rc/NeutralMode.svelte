@@ -136,7 +136,9 @@
       <CircleLayer
         manageHoverState
         paint={{
-          "circle-color": ["get", "color"],
+          "circle-color": "rgba(0,0,0,0)",
+          "circle-stroke-width": 5,
+          "circle-stroke-color": ["get", "color"],
           "circle-radius": hoverStateFilter(20, 25),
         }}
         hoverCursor="pointer"
