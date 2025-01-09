@@ -2,8 +2,9 @@
   import { tick } from "svelte";
   import { CircleLayer, GeoJSON, Marker } from "svelte-maplibre";
   import { SplitComponent } from "svelte-utils/two_column_layout";
+  import { scores } from "../common";
   import ShowAllLayers from "../ShowAllLayers.svelte";
-  import { gj, mode, scores, state } from "../state";
+  import { gj, mode, state } from "../state";
 
   export let idx: number;
 

@@ -1,4 +1,4 @@
-import type { JunctionAssessment } from "../state";
+import type { JunctionAssessment } from "./types";
 
 export function describeScore(ja: JunctionAssessment): string {
   if (ja.movements.length == 0) {

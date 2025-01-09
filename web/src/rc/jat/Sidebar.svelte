@@ -1,6 +1,7 @@
 <script lang="ts">
   import ClickLink from "../ClickLink.svelte";
-  import { blankJAT, map, mode, state } from "../state";
+  import { map, mode, state } from "../state";
+  import { blankJAT } from "./types";
 
   function newJAT() {
     if (!$map) {

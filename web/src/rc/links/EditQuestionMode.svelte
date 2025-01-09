@@ -1,7 +1,8 @@
 <script lang="ts">
   import { SplitComponent } from "svelte-utils/two_column_layout";
   import ShowAllLayers from "../ShowAllLayers.svelte";
-  import { mode, questions, state } from "../state";
+  import { mode, state } from "../state";
+  import { questions } from "./types";
 
   export let qIdx: number;
 

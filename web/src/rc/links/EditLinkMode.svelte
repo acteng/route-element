@@ -3,8 +3,9 @@
   import { GeoJSON, LineLayer } from "svelte-maplibre";
   import { SplitComponent } from "svelte-utils/two_column_layout";
   import ShowAllLayers from "../ShowAllLayers.svelte";
-  import { gj, mode, questions, state } from "../state";
+  import { gj, mode, state } from "../state";
   import DrawLine from "./DrawLine.svelte";
+  import { questions } from "./types";
 
   export let idx: number;
 

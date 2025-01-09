@@ -2,7 +2,8 @@ import bearing from "@turf/bearing";
 import turfCenter from "@turf/center";
 import destination from "@turf/destination";
 import distance from "@turf/distance";
-import type { Arm, Movement, Position } from "../state";
+import type { Position } from "../common";
+import type { Arm, Movement } from "./types";
 
 export function generateMovements(arms: Arm[]): Movement[] {
   // Sort arms around center in CCW order

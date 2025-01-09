@@ -1,6 +1,7 @@
 <script lang="ts">
   import ClickLink from "../ClickLink.svelte";
-  import { blankCrossing, map, mode, state } from "../state";
+  import { map, mode, state } from "../state";
+  import { blankCrossing } from "./types";
 
   function newCrossing() {
     if (!$map) {

@@ -16,15 +16,10 @@
   import { Popup } from "svelte-utils/map";
   import movementUrl from "../assets/movement.svg?url";
   import panUrl from "../assets/pan.svg?url";
-  import {
-    map,
-    state,
-    type Arm,
-    type Movement,
-    type Position,
-    type State,
-  } from "../state";
+  import type { Position } from "../common";
+  import { map, state, type State } from "../state";
   import { colors } from "./colors";
+  import type { Arm, Movement } from "./types";
 
   type Mode =
     | { mode: "select" }

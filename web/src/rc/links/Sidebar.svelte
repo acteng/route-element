@@ -1,7 +1,8 @@
 <script lang="ts">
   import ClickLink from "../ClickLink.svelte";
-  import { blankLink, mode, questions, state } from "../state";
+  import { mode, state } from "../state";
   import Table from "./Table.svelte";
+  import { blankLink, questions } from "./types";
 
   let showTable = false;
 

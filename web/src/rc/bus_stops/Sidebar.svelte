@@ -1,6 +1,7 @@
 <script lang="ts">
   import ClickLink from "../ClickLink.svelte";
-  import { blankBusStop, map, mode, state } from "../state";
+  import { map, mode, state } from "../state";
+  import { blankBusStop } from "./types";
 
   function newBusStop() {
     if (!$map) {
