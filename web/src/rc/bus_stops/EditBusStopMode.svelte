@@ -2,7 +2,7 @@
   import { tick } from "svelte";
   import { CircleLayer, GeoJSON, Marker } from "svelte-maplibre";
   import { SplitComponent } from "svelte-utils/two_column_layout";
-  import ShowAllBusStops from "../ShowAllBusStops.svelte";
+  import ShowAllJATs from "../ShowAllJATs.svelte";
   import ShowAllLinks from "../ShowAllLinks.svelte";
   import { gj, mode, state } from "../state";
 
@@ -15,11 +15,11 @@
   }
 
   async function remove() {
-    if (window.confirm("Really delete this JAT?")) {
+    if (window.confirm("Really delete this bus stop?")) {
       $mode = { kind: "neutral" };
       await tick();
-      $state.jats.splice(idx, 1);
-      $state.jats = $state.jats;
+      $state.bus_stops.splice(idx, 1);
+      $state.bus_stops = $state.bus_stops;
     }
   }
 </script>
@@ -29,47 +29,34 @@
 <SplitComponent>
   <div slot="sidebar">
     <button on:click={() => ($mode = { kind: "neutral" })}>Done</button>
-    <button on:click={remove}>Delete JAT</button>
+    <button on:click={remove}>Delete bus stop</button>
 
     <label>
       Name:
-      <input type="text" bind:value={$state.jats[idx].properties.name} />
+      <input type="text" bind:value={$state.bus_stops[idx].properties.name} />
     </label>
 
-    <button
-      on:click={() =>
-        ($mode = { kind: "edit-jat-detail", idx, stage: "existing" })}
-    >
-      Existing
-    </button>
-    <button
-      on:click={() =>
-        ($mode = { kind: "edit-jat-detail", idx, stage: "proposed" })}
-    >
-      Proposed
-    </button>
+    TODO question
   </div>
 
   <div slot="map">
     <ShowAllLinks />
-    <ShowAllBusStops />
+    <ShowAllJATs />
 
-    <GeoJSON data={gj($state.jats)} generateId>
+    <GeoJSON data={gj($state.bus_stops)} generateId>
       <CircleLayer
         filter={["!=", ["id"], idx]}
         paint={{
-          "circle-color": "rgba(0,0,0,0)",
-          "circle-stroke-width": 5,
-          "circle-stroke-color": "black",
-          "circle-radius": 20,
+          "circle-color": "black",
+          "circle-radius": 10,
         }}
       />
     </GeoJSON>
 
-    <Marker draggable bind:lngLat={$state.jats[idx].geometry.coordinates}>
+    <Marker draggable bind:lngLat={$state.bus_stops[idx].geometry.coordinates}>
       <span
         class="dot"
-        style:border-color={$state.jats[idx].properties.color}
+        style:background-color={$state.bus_stops[idx].properties.color}
       />
     </Marker>
   </div>
@@ -77,12 +64,10 @@
 
 <style>
   .dot {
-    width: 50px;
-    height: 50px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     display: flex;
-    border-width: 5px;
-    border-style: solid;
   }
 
   .dot:hover {

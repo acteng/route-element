@@ -10,6 +10,7 @@
   import ClickLink from "./ClickLink.svelte";
   import Table from "./links/Table.svelte";
   import {
+    blankBusStop,
     blankJAT,
     blankLink,
     gj,
@@ -24,6 +25,7 @@
   function clear() {
     $state.links = [];
     $state.jats = [];
+    $state.bus_stops = [];
   }
 
   function newLink() {
@@ -39,6 +41,15 @@
     let f = blankJAT($state.jats.length, $map.getCenter().toArray());
     $state.jats = [...$state.jats, f];
     $mode = { kind: "edit-jat", idx: $state.jats.length - 1 };
+  }
+
+  function newBusStop() {
+    if (!$map) {
+      return;
+    }
+    let f = blankBusStop($state.bus_stops.length, $map.getCenter().toArray());
+    $state.bus_stops = [...$state.bus_stops, f];
+    $mode = { kind: "edit-bus-stop", idx: $state.bus_stops.length - 1 };
   }
 </script>
 
@@ -116,6 +127,27 @@
         </li>
       {/each}
     </ol>
+
+    <hr />
+
+    Bus stops:
+
+    <div>
+      <button on:click={newBusStop}>New bus stop</button>
+    </div>
+
+    <ol>
+      {#each $state.bus_stops as bus_stop, idx}
+        <li>
+          <ClickLink
+            on:click={() => ($mode = { kind: "edit-bus-stop", idx })}
+            color={bus_stop.properties.color}
+          >
+            {bus_stop.properties.name}
+          </ClickLink>
+        </li>
+      {/each}
+    </ol>
   </div>
 
   <div slot="map">
@@ -144,6 +176,19 @@
         hoverCursor="pointer"
         on:click={(e) =>
           ($mode = { kind: "edit-jat", idx: e.detail.features[0].id })}
+      />
+    </GeoJSON>
+
+    <GeoJSON data={gj($state.bus_stops)} generateId>
+      <CircleLayer
+        manageHoverState
+        paint={{
+          "circle-color": ["get", "color"],
+          "circle-radius": hoverStateFilter(10, 15),
+        }}
+        hoverCursor="pointer"
+        on:click={(e) =>
+          ($mode = { kind: "edit-bus-stop", idx: e.detail.features[0].id })}
       />
     </GeoJSON>
   </div>

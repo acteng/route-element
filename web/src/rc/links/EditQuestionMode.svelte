@@ -1,5 +1,6 @@
 <script lang="ts">
   import { SplitComponent } from "svelte-utils/two_column_layout";
+  import ShowAllBusStops from "../ShowAllBusStops.svelte";
   import ShowAllJATs from "../ShowAllJATs.svelte";
   import ShowAllLinks from "../ShowAllLinks.svelte";
   import { mode, questions, state } from "../state";
@@ -40,5 +41,6 @@
   <div slot="map">
     <ShowAllLinks showColor />
     <ShowAllJATs />
+    <ShowAllBusStops />
   </div>
 </SplitComponent>

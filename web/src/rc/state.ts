@@ -14,6 +14,7 @@ export let state: Writable<State> = writable(loadState());
 export type State = {
   links: Link[];
   jats: JAT[];
+  bus_stops: BusStop[];
 };
 
 export function gj(features: Feature[]): FeatureCollection {
@@ -28,6 +29,7 @@ type Mode =
   | { kind: "edit-link"; idx: number }
   | { kind: "edit-jat"; idx: number }
   | { kind: "edit-jat-detail"; idx: number; stage: "existing" | "proposed" }
+  | { kind: "edit-bus-stop"; idx: number }
   | { kind: "edit-question"; idx: number };
 export let mode: Writable<Mode> = writable({ kind: "neutral" });
 
@@ -42,6 +44,15 @@ export type JAT = Feature<
     color: string;
     existing: JunctionAssessment;
     proposed: JunctionAssessment;
+  }
+>;
+export type BusStop = Feature<
+  Point,
+  {
+    name: string;
+    color: string;
+    // TODO Also partly sa05?
+    st20: string;
   }
 >;
 
@@ -79,7 +90,6 @@ export interface Question {
 // - and still a judgment
 // Per roundabout / signal junction: SA02
 // Derived from crossings and area: SA06, SA07, SA10
-// Per bus stop, SA05 as well and ST20
 
 function scores(): string[] {
   return ["", "2", "1", "0", "Critical"];
@@ -179,6 +189,21 @@ export function blankLink(idx: number): Link {
   };
 }
 
+export function blankBusStop(idx: number, pt: Position): BusStop {
+  return {
+    type: "Feature" as const,
+    geometry: {
+      type: "Point" as const,
+      coordinates: pt,
+    },
+    properties: {
+      name: "Untitled bus stop",
+      color: colors[idx % colors.length],
+      st20: "",
+    },
+  };
+}
+
 export function blankJAT(idx: number, pt: Position): JAT {
   return {
     type: "Feature" as const,
@@ -206,9 +231,9 @@ export function blankJAT(idx: number, pt: Position): JAT {
 function loadState(): State {
   try {
     let x = JSON.parse(window.localStorage.getItem("tmp-rcv2") || "");
-    if ("links" in x && "jats" in x) {
+    if ("links" in x && "jats" in x && "bus_stops" in x) {
       return x;
     }
   } catch (err) {}
-  return { links: [], jats: [] };
+  return { links: [], jats: [], bus_stops: [] };
 }
