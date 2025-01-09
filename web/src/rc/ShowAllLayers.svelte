@@ -1,0 +1,53 @@
+<script lang="ts">
+  import { CircleLayer, GeoJSON, LineLayer } from "svelte-maplibre";
+  import { gj, state } from "./state";
+
+  export let except: "" | "links" | "bus_stops" | "crossings" | "jats";
+  export let showLinkColor = false;
+</script>
+
+{#if except != "links"}
+  <GeoJSON data={gj($state.links)}>
+    <LineLayer
+      paint={{
+        "line-color": showLinkColor ? ["get", "color"] : "black",
+        "line-width": 6,
+      }}
+    />
+  </GeoJSON>
+{/if}
+
+{#if except != "bus_stops"}
+  <GeoJSON data={gj($state.bus_stops)}>
+    <CircleLayer
+      paint={{
+        "circle-color": "black",
+        "circle-radius": 10,
+      }}
+    />
+  </GeoJSON>
+{/if}
+
+{#if except != "crossings"}
+  <GeoJSON data={gj($state.crossings)}>
+    <CircleLayer
+      paint={{
+        "circle-color": "black",
+        "circle-radius": 10,
+      }}
+    />
+  </GeoJSON>
+{/if}
+
+{#if except != "jats"}
+  <GeoJSON data={gj($state.jats)}>
+    <CircleLayer
+      paint={{
+        "circle-color": "rgba(0,0,0,0)",
+        "circle-stroke-width": 5,
+        "circle-stroke-color": "black",
+        "circle-radius": 20,
+      }}
+    />
+  </GeoJSON>
+{/if}

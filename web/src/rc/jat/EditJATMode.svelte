@@ -2,8 +2,7 @@
   import { tick } from "svelte";
   import { CircleLayer, GeoJSON, Marker } from "svelte-maplibre";
   import { SplitComponent } from "svelte-utils/two_column_layout";
-  import ShowAllBusStops from "../ShowAllBusStops.svelte";
-  import ShowAllLinks from "../ShowAllLinks.svelte";
+  import ShowAllLayers from "../ShowAllLayers.svelte";
   import { gj, mode, state } from "../state";
 
   export let idx: number;
@@ -51,8 +50,7 @@
   </div>
 
   <div slot="map">
-    <ShowAllLinks />
-    <ShowAllBusStops />
+    <ShowAllLayers except="jats" />
 
     <GeoJSON data={gj($state.jats)} generateId>
       <CircleLayer

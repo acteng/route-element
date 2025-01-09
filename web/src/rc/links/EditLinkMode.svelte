@@ -2,8 +2,7 @@
   import { tick } from "svelte";
   import { GeoJSON, LineLayer } from "svelte-maplibre";
   import { SplitComponent } from "svelte-utils/two_column_layout";
-  import ShowAllBusStops from "../ShowAllBusStops.svelte";
-  import ShowAllJATs from "../ShowAllJATs.svelte";
+  import ShowAllLayers from "../ShowAllLayers.svelte";
   import { gj, mode, questions, state } from "../state";
   import DrawLine from "./DrawLine.svelte";
 
@@ -57,6 +56,8 @@
   </div>
 
   <div slot="map">
+    <ShowAllLayers except="links" />
+
     <GeoJSON data={gj($state.links)} generateId>
       <LineLayer
         paint={{
@@ -70,9 +71,6 @@
         }}
       />
     </GeoJSON>
-
-    <ShowAllJATs />
-    <ShowAllBusStops />
 
     <DrawLine bind:f={$state.links[idx]} />
   </div>

@@ -2,8 +2,7 @@
   import { tick } from "svelte";
   import { CircleLayer, GeoJSON } from "svelte-maplibre";
   import { SplitComponent } from "svelte-utils/two_column_layout";
-  import ShowAllBusStops from "../ShowAllBusStops.svelte";
-  import ShowAllLinks from "../ShowAllLinks.svelte";
+  import ShowAllLayers from "../ShowAllLayers.svelte";
   import { mode as appMode, gj, state } from "../state";
   import ClickableCard from "./ClickableCard.svelte";
   import { colors } from "./colors";
@@ -240,8 +239,7 @@
   </div>
 
   <div slot="map">
-    <ShowAllLinks />
-    <ShowAllBusStops />
+    <ShowAllLayers except="jats" />
 
     <GeoJSON data={gj($state.jats)} generateId>
       <CircleLayer
