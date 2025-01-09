@@ -4,6 +4,7 @@
     GeoJSON,
     hoverStateFilter,
     LineLayer,
+    SymbolLayer,
   } from "svelte-maplibre";
   import { downloadGeneratedFile } from "svelte-utils";
   import { SplitComponent } from "svelte-utils/two_column_layout";
@@ -88,11 +89,14 @@
     </GeoJSON>
 
     <GeoJSON data={gj($state.bus_stops)} generateId>
-      <CircleLayer
+      <SymbolLayer
         manageHoverState
+        layout={{
+          "icon-image": "bus_stop",
+          "icon-size": 3.0,
+        }}
         paint={{
-          "circle-color": ["get", "color"],
-          "circle-radius": hoverStateFilter(10, 15),
+          "icon-color": ["get", "color"],
         }}
         hoverCursor="pointer"
         on:click={(e) =>

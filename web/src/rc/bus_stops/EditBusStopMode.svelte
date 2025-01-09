@@ -1,7 +1,8 @@
 <script lang="ts">
   import { tick } from "svelte";
-  import { CircleLayer, GeoJSON } from "svelte-maplibre";
+  import { GeoJSON, SymbolLayer } from "svelte-maplibre";
   import { SplitComponent } from "svelte-utils/two_column_layout";
+  import icon from "../assets/bus_stop.png?url";
   import { scores } from "../common";
   import DraggableMarker from "../DraggableMarker.svelte";
   import Picker from "../Picker.svelte";
@@ -50,11 +51,14 @@
     <ShowAllLayers except="bus_stops" />
 
     <GeoJSON data={gj($state.bus_stops)} generateId>
-      <CircleLayer
+      <SymbolLayer
         filter={["!=", ["id"], idx]}
+        layout={{
+          "icon-image": "bus_stop",
+          "icon-size": 3.0,
+        }}
         paint={{
-          "circle-color": "black",
-          "circle-radius": 10,
+          "icon-color": "black",
         }}
       />
     </GeoJSON>
@@ -62,6 +66,8 @@
     <DraggableMarker
       bind:lngLat={$state.bus_stops[idx].geometry.coordinates}
       color={$state.bus_stops[idx].properties.color}
-    />
+    >
+      <img src={icon} />
+    </DraggableMarker>
   </div>
 </SplitComponent>

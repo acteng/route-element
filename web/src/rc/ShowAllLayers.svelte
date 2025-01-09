@@ -1,5 +1,10 @@
 <script lang="ts">
-  import { CircleLayer, GeoJSON, LineLayer } from "svelte-maplibre";
+  import {
+    CircleLayer,
+    GeoJSON,
+    LineLayer,
+    SymbolLayer,
+  } from "svelte-maplibre";
   import { gj, state } from "./state";
 
   export let except:
@@ -25,10 +30,13 @@
 
 {#if except != "bus_stops"}
   <GeoJSON data={gj($state.bus_stops)}>
-    <CircleLayer
+    <SymbolLayer
+      layout={{
+        "icon-image": "bus_stop",
+        "icon-size": 3.0,
+      }}
       paint={{
-        "circle-color": "black",
-        "circle-radius": 10,
+        "icon-color": "black",
       }}
     />
   </GeoJSON>

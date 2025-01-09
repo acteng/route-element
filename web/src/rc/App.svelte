@@ -6,6 +6,7 @@
     mapContents,
     sidebarContents,
   } from "svelte-utils/two_column_layout";
+  import busStopIcon from "./assets/bus_stop.png?url";
   import EditBusStopMode from "./bus_stops/EditBusStopMode.svelte";
   import EditCrossingMode from "./crossings/EditCrossingMode.svelte";
   import { getStyle } from "./google";
@@ -38,7 +39,21 @@
 
   <div slot="main" style="position:relative; width: 100%; height: 100vh;">
     {#await getStyle(new URLSearchParams(window.location.search).get("google") || "") then style}
-      <MapLibre {style} standardControls hash bind:map={$map}>
+      <MapLibre
+        {style}
+        standardControls
+        hash
+        bind:map={$map}
+        images={[
+          {
+            id: "bus_stop",
+            url: busStopIcon,
+            options: {
+              sdf: true,
+            },
+          },
+        ]}
+      >
         <div bind:this={mapDiv} />
         {#if $mode.kind == "neutral"}
           <NeutralMode />

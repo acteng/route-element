@@ -16,7 +16,9 @@
     style:width={radius}
     style:height={radius}
     class:outline
-  />
+  >
+    <slot />
+  </span>
 </Marker>
 
 <style>
