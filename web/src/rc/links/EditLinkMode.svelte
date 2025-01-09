@@ -2,9 +2,9 @@
   import { tick } from "svelte";
   import { GeoJSON, LineLayer } from "svelte-maplibre";
   import { SplitComponent } from "svelte-utils/two_column_layout";
+  import ShowAllJATs from "../ShowAllJATs.svelte";
+  import { gj, mode, questions, state } from "../state";
   import DrawLine from "./DrawLine.svelte";
-  import ShowAllJATs from "./ShowAllJATs.svelte";
-  import { gj, mode, questions, state } from "./state";
 
   export let idx: number;
 

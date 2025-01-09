@@ -6,11 +6,11 @@
     mapContents,
     sidebarContents,
   } from "svelte-utils/two_column_layout";
-  import EditLinkMode from "./EditLinkMode.svelte";
-  import EditQuestionMode from "./EditQuestionMode.svelte";
   import { getStyle } from "./google";
   import EditJATDetailMode from "./jat/EditJATDetailMode.svelte";
   import EditJATMode from "./jat/EditJATMode.svelte";
+  import EditLinkMode from "./links/EditLinkMode.svelte";
+  import EditQuestionMode from "./links/EditQuestionMode.svelte";
   import NeutralMode from "./NeutralMode.svelte";
   import { map, mode, state } from "./state";
 

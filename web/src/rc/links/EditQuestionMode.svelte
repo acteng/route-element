@@ -1,8 +1,8 @@
 <script lang="ts">
   import { SplitComponent } from "svelte-utils/two_column_layout";
-  import ShowAllJATs from "./ShowAllJATs.svelte";
-  import ShowAllLinks from "./ShowAllLinks.svelte";
-  import { mode, questions, state } from "./state";
+  import ShowAllJATs from "../ShowAllJATs.svelte";
+  import ShowAllLinks from "../ShowAllLinks.svelte";
+  import { mode, questions, state } from "../state";
 
   export let qIdx: number;
 

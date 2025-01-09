@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Modal } from "svelte-utils";
-  import { questions, state } from "./state";
+  import { questions, state } from "../state";
 </script>
 
 <Modal on:close>

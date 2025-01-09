@@ -8,6 +8,7 @@
   import { downloadGeneratedFile } from "svelte-utils";
   import { SplitComponent } from "svelte-utils/two_column_layout";
   import ClickLink from "./ClickLink.svelte";
+  import Table from "./links/Table.svelte";
   import {
     blankJAT,
     blankLink,
@@ -17,7 +18,6 @@
     questions,
     state,
   } from "./state";
-  import Table from "./Table.svelte";
 
   let showTable = false;
 

@@ -74,9 +74,12 @@ export interface Question {
   choices: string[];
 }
 
-// Per side road and some other junction: SA01
+// Per side road and priority junction: SA01
+// - raised table, continuous footway, radius
+// - and still a judgment
 // Per roundabout / signal junction: SA02
 // Derived from crossings and area: SA06, SA07, SA10
+// Per bus stop, SA05 as well and ST20
 
 function scores(): string[] {
   return ["", "2", "1", "0", "Critical"];
