@@ -7,6 +7,7 @@
     sidebarContents,
   } from "svelte-utils/two_column_layout";
   import busStopIcon from "./assets/bus_stop.png?url";
+  import crossingIcon from "./assets/crossing.png?url";
   import EditBusStopMode from "./bus_stops/EditBusStopMode.svelte";
   import EditCrossingMode from "./crossings/EditCrossingMode.svelte";
   import { getStyle } from "./google";
@@ -48,6 +49,13 @@
           {
             id: "bus_stop",
             url: busStopIcon,
+            options: {
+              sdf: true,
+            },
+          },
+          {
+            id: "crossing",
+            url: crossingIcon,
             options: {
               sdf: true,
             },

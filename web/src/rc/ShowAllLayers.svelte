@@ -44,10 +44,13 @@
 
 {#if except != "crossings"}
   <GeoJSON data={gj($state.crossings)}>
-    <CircleLayer
+    <SymbolLayer
+      layout={{
+        "icon-image": "crossing",
+        "icon-size": 0.1,
+      }}
       paint={{
-        "circle-color": "black",
-        "circle-radius": 10,
+        "icon-color": "black",
       }}
     />
   </GeoJSON>

@@ -1,3 +1,7 @@
-Except for `right-arrow.svg`, icons are from [Material Icons](https://fonts.google.com/icons).
+`right-arrow.svg` was made manually.
 
-PNGs are sent through https://jobtalle.com/SDFMaker/
+`movement`, `pan`, and `bus_stop` came from [Material Icons](https://fonts.google.com/icons).
+
+`crossing` came from [Flat Icon](https://www.flaticon.com/free-icons/pedestrian-crossing)
+
+PNGs were sent through https://jobtalle.com/SDFMaker/

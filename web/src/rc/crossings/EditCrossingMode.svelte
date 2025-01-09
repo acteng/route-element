@@ -1,7 +1,8 @@
 <script lang="ts">
   import { tick } from "svelte";
-  import { CircleLayer, GeoJSON } from "svelte-maplibre";
+  import { GeoJSON, SymbolLayer } from "svelte-maplibre";
   import { SplitComponent } from "svelte-utils/two_column_layout";
+  import icon from "../assets/crossing.png?url";
   import { scores } from "../common";
   import DraggableMarker from "../DraggableMarker.svelte";
   import Picker from "../Picker.svelte";
@@ -50,11 +51,14 @@
     <ShowAllLayers except="crossings" />
 
     <GeoJSON data={gj($state.crossings)} generateId>
-      <CircleLayer
+      <SymbolLayer
         filter={["!=", ["id"], idx]}
+        layout={{
+          "icon-image": "crossing",
+          "icon-size": 1.0,
+        }}
         paint={{
-          "circle-color": "black",
-          "circle-radius": 10,
+          "icon-color": "black",
         }}
       />
     </GeoJSON>
@@ -62,6 +66,8 @@
     <DraggableMarker
       bind:lngLat={$state.crossings[idx].geometry.coordinates}
       color={$state.crossings[idx].properties.color}
-    />
+    >
+      <img src={icon} />
+    </DraggableMarker>
   </div>
 </SplitComponent>

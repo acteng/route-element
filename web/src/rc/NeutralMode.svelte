@@ -108,11 +108,14 @@
     </GeoJSON>
 
     <GeoJSON data={gj($state.crossings)} generateId>
-      <CircleLayer
+      <SymbolLayer
         manageHoverState
+        layout={{
+          "icon-image": "crossing",
+          "icon-size": 0.1,
+        }}
         paint={{
-          "circle-color": ["get", "color"],
-          "circle-radius": hoverStateFilter(10, 15),
+          "icon-color": ["get", "color"],
         }}
         hoverCursor="pointer"
         on:click={(e) =>
