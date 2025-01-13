@@ -6,7 +6,7 @@
     LineLayer,
     SymbolLayer,
   } from "svelte-maplibre";
-  import { downloadGeneratedFile } from "svelte-utils";
+  import { downloadGeneratedFile, Modal } from "svelte-utils";
   import { SplitComponent } from "svelte-utils/two_column_layout";
   import BusStopSidebar from "./bus_stops/Sidebar.svelte";
   import { numId } from "./common";
@@ -14,7 +14,21 @@
   import JATSidebar from "./jat/Sidebar.svelte";
   import LinkSidebar from "./links/Sidebar.svelte";
   import SideRoadSidebar from "./side_roads/Sidebar.svelte";
-  import { gj, mode, state } from "./state";
+  import { checkState, gj, mode, state } from "./state";
+
+  let showImport = false;
+  let fileInput: HTMLInputElement;
+  async function loadFile(e: Event) {
+    try {
+      let x = JSON.parse(await fileInput.files![0].text());
+      if (checkState(x)) {
+        $state = x;
+        showImport = false;
+        return;
+      }
+    } catch (err) {}
+    window.alert("Something's wrong with that file");
+  }
 
   function clear() {
     $state.links = [];
@@ -28,6 +42,9 @@
 <SplitComponent>
   <div slot="sidebar">
     <div>
+      <button class="secondary" on:click={() => (showImport = true)}>
+        Load file
+      </button>
       <button
         class="secondary"
         on:click={() =>
@@ -143,3 +160,11 @@
     </GeoJSON>
   </div>
 </SplitComponent>
+
+{#if showImport}
+  <Modal on:close={() => (showImport = false)}>
+    <h1>Load a file previously downloaded from this tool</h1>
+
+    <input bind:this={fileInput} on:change={loadFile} type="file" />
+  </Modal>
+{/if}

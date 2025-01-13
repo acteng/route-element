@@ -37,16 +37,20 @@ type Mode =
   | { kind: "edit-question"; idx: number };
 export let mode: Writable<Mode> = writable({ kind: "neutral" });
 
+export function checkState(x: any): boolean {
+  return (
+    "links" in x &&
+    "jats" in x &&
+    "bus_stops" &&
+    "crossings" in x &&
+    "side_roads" in x
+  );
+}
+
 function loadState(): State {
   try {
     let x = JSON.parse(window.localStorage.getItem("tmp-rcv2") || "");
-    if (
-      "links" in x &&
-      "jats" in x &&
-      "bus_stops" &&
-      "crossings" in x &&
-      "side_roads" in x
-    ) {
+    if (checkState(x)) {
       return x;
     }
   } catch (err) {}
