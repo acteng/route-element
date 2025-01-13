@@ -9,6 +9,7 @@
   import busStopIcon from "./assets/bus_stop.png?url";
   import crossingIcon from "./assets/crossing.png?url";
   import EditBusStopMode from "./bus_stops/EditBusStopMode.svelte";
+  import ContextualLayers from "./context/ContextualLayers.svelte";
   import EditCrossingMode from "./crossings/EditCrossingMode.svelte";
   import { getStyle } from "./google";
   import EditJATDetailMode from "./jat/EditJATDetailMode.svelte";
@@ -83,6 +84,8 @@
         {:else if $mode.kind == "edit-question"}
           <EditQuestionMode qIdx={$mode.idx} />
         {/if}
+
+        <ContextualLayers />
       </MapLibre>
     {/await}
   </div>
