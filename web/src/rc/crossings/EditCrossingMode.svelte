@@ -45,10 +45,11 @@
 
     <Picker
       k="horiz-radio"
-      label="SA10: pedestrian crossing speed"
       bind:value={$state.crossings[idx].properties.sa10}
       choices={scores()}
-    />
+    >
+      SA10: pedestrian crossing speed
+    </Picker>
 
     <p>{metric.description}</p>
     <MetricDetails {metric} />

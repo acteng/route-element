@@ -38,7 +38,6 @@
 
           <Picker
             k="horiz-radio"
-            label=""
             bind:value={link.properties.answers[qIdx]}
             choices={questions[qIdx].choices}
           />

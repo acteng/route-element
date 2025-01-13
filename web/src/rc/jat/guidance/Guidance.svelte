@@ -33,19 +33,21 @@
     <div style="display: flex; justify-content: space-between">
       <Picker
         k="vert-radio"
-        label="Type of junction"
         bind:value={junctionType}
         on:change={resetMovementType}
         choices={junctionTypes}
-      />
+      >
+        Type of junction
+      </Picker>
 
       {#key junctionType}
         <Picker
           k="vert-radio"
-          label="Type of movement"
           bind:value={movementType}
           choices={getMovementTypes(junctionType)}
-        />
+        >
+          Type of movement
+        </Picker>
       {/key}
     </div>
 

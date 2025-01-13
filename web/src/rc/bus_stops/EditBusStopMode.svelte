@@ -41,10 +41,11 @@
 
     <Picker
       k="horiz-radio"
-      label="ST20: bus stops"
       bind:value={$state.bus_stops[idx].properties.st20}
       choices={scores()}
-    />
+    >
+      ST20: bus stops
+    </Picker>
   </div>
 
   <div slot="map">

@@ -53,15 +53,20 @@
     {#each questions as q, qIdx}
       <Picker
         k="horiz-radio"
-        label={`${q.name}: ${q.description}`}
         bind:value={$state.links[idx].properties.answers[qIdx]}
         choices={q.choices}
-      />
-      {#if metrics[q.name]}
-        <button class="outline" on:click={() => (showMetric = metrics[q.name])}>
-          ?
-        </button>
-      {/if}
+      >
+        {q.name}: {q.description}
+
+        {#if metrics[q.name]}
+          <button
+            class="outline"
+            on:click={() => (showMetric = metrics[q.name])}
+          >
+            ?
+          </button>
+        {/if}
+      </Picker>
     {/each}
   </div>
 

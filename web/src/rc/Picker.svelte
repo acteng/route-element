@@ -1,6 +1,6 @@
 <script lang="ts">
+  // The slot is for the label
   export let k: "horiz-radio" | "vert-radio" | "dropdown";
-  export let label: string;
   export let value: string;
   // [value, label] or both[]
   export let choices: [string, string][] | string[];
@@ -11,7 +11,7 @@
 
 {#if k == "horiz-radio" || k == "vert-radio"}
   <fieldset>
-    {label}
+    <slot />
 
     <div class:horiz_radio={k == "horiz-radio"}>
       {#each fullChoices as [v, l]}
@@ -24,7 +24,8 @@
   </fieldset>
 {:else if k == "dropdown"}
   <label>
-    {label}
+    <slot />
+
     <select bind:value on:change>
       {#each fullChoices as [v, l]}
         <option value={v}>{l}</option>

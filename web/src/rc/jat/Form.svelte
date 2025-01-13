@@ -25,13 +25,14 @@
 
 <Picker
   k="horiz-radio"
-  label="User"
   bind:value={$state.jats[junctionIdx].properties[stage].movements[idx].kind}
   choices={[
     ["cycling", "Cycling"],
     ["walking & wheeling", "Walking & Wheeling"],
   ]}
-/>
+>
+  User
+</Picker>
 
 {#if $state.jats[junctionIdx].properties[stage].movements[idx].kind == "cycling"}
   <Guidance />
@@ -39,10 +40,11 @@
 
 <Picker
   k="horiz-radio"
-  label="Score"
   bind:value={$state.jats[junctionIdx].properties[stage].movements[idx].score}
   choices={scoreChoices}
-/>
+>
+  Score
+</Picker>
 
 <label>
   Comments

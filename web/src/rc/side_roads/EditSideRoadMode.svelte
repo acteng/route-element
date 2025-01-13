@@ -51,10 +51,11 @@
 
     <Picker
       k="horiz-radio"
-      label="SA01: conflict at side roads and priority junctions"
       bind:value={$state.side_roads[idx].properties.sa01}
       choices={scores()}
-    />
+    >
+      SA01: conflict at side roads and priority junctions
+    </Picker>
 
     <p>{metric.description}</p>
     <MetricDetails {metric} />
