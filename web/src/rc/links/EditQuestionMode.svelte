@@ -1,11 +1,15 @@
 <script lang="ts">
   import { SplitComponent } from "svelte-utils/two_column_layout";
+  import MetricDetails from "../MetricDetails.svelte";
+  import { metrics, type Metric } from "../metrics";
   import Picker from "../Picker.svelte";
   import ShowAllLayers from "../ShowAllLayers.svelte";
   import { mode, state } from "../state";
   import { questions } from "./types";
 
   export let qIdx: number;
+
+  let metric: Metric | null = metrics[questions[qIdx].name];
 
   function onKeyDown(e: KeyboardEvent) {
     if (e.key == "Escape") {
@@ -21,6 +25,10 @@
     <button on:click={() => ($mode = { kind: "neutral" })}>Done</button>
 
     <h2>{questions[qIdx].name}: {questions[qIdx].description}</h2>
+    {#if metric}
+      <p>{metric.description}</p>
+    {/if}
+
     <ol>
       {#each $state.links as link}
         <li>
@@ -37,6 +45,10 @@
         </li>
       {/each}
     </ol>
+
+    {#if metric}
+      <MetricDetails {metric} />
+    {/if}
   </div>
 
   <div slot="map">

@@ -1,8 +1,11 @@
 <script lang="ts">
   import { tick } from "svelte";
   import { GeoJSON, LineLayer } from "svelte-maplibre";
+  import { Modal } from "svelte-utils";
   import { SplitComponent } from "svelte-utils/two_column_layout";
   import DrawLine from "../DrawLine.svelte";
+  import MetricDetails from "../MetricDetails.svelte";
+  import { metrics, type Metric } from "../metrics";
   import Picker from "../Picker.svelte";
   import ShowAllLayers from "../ShowAllLayers.svelte";
   import { gj, mode, state } from "../state";
@@ -11,6 +14,8 @@
   export let idx: number;
 
   $: valid = $state.links[idx].geometry.coordinates.length >= 2;
+
+  let showMetric: Metric | null = null;
 
   function onKeyDown(e: KeyboardEvent) {
     if (e.key == "Escape" && valid) {
@@ -52,6 +57,11 @@
         bind:value={$state.links[idx].properties.answers[qIdx]}
         choices={q.choices}
       />
+      {#if metrics[q.name]}
+        <button class="outline" on:click={() => (showMetric = metrics[q.name])}>
+          ?
+        </button>
+      {/if}
     {/each}
   </div>
 
@@ -75,3 +85,10 @@
     <DrawLine bind:f={$state.links[idx]} />
   </div>
 </SplitComponent>
+
+{#if showMetric}
+  <Modal on:close={() => (showMetric = null)}>
+    <p>{showMetric.description}</p>
+    <MetricDetails metric={showMetric} />
+  </Modal>
+{/if}

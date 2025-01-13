@@ -1,4 +1,12 @@
-export let metrics = {
+export interface Metric {
+  description: string;
+  green: string;
+  amber: string;
+  red: string;
+  critical: string;
+}
+
+export let metrics: { [name: string]: Metric } = {
   SA01: {
     description: `Pedestrian and cyclist conflict with motor traffic at side roads/priority junctions`,
     green: `Side roads/priority junctions have entry treatments that offer greater protection for  pedestrian and cycle movements (e.g. exit only, continuous footways, zebra/parallel crossings as appropriate to context).`,

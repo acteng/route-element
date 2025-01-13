@@ -1,8 +1,12 @@
 # This is a quick variation of a script in https://github.com/acteng/inspectorate_tools/tree/main/codegen
 import csv
 
-with open("web/src/rc/links/metrics.ts", "w") as f:
-    f.write("export let metrics = {\n")
+with open("web/src/rc/metrics.ts", "w") as f:
+    f.write("export interface Metric {\n")
+    f.write("  description: string; green: string; amber: string; red: string; critical: string;\n")
+    f.write("}\n\n")
+
+    f.write("export let metrics: { [name: string]: Metric } = {\n")
 
     with open(
         "/home/dabreegster/inspectorate_tools/codegen/inputs/safety-check.csv"

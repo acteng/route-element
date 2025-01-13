@@ -4,11 +4,15 @@
   import { SplitComponent } from "svelte-utils/two_column_layout";
   import { scores } from "../common";
   import DrawLine from "../DrawLine.svelte";
+  import MetricDetails from "../MetricDetails.svelte";
+  import { metrics } from "../metrics";
   import Picker from "../Picker.svelte";
   import ShowAllLayers from "../ShowAllLayers.svelte";
   import { gj, mode, state } from "../state";
 
   export let idx: number;
+
+  let metric = metrics.SA01;
 
   $: valid = $state.side_roads[idx].geometry.coordinates.length >= 2;
 
@@ -51,6 +55,9 @@
       bind:value={$state.side_roads[idx].properties.sa01}
       choices={scores()}
     />
+
+    <p>{metric.description}</p>
+    <MetricDetails {metric} />
   </div>
 
   <div slot="map">

@@ -5,11 +5,15 @@
   import icon from "../assets/crossing.png?url";
   import { scores } from "../common";
   import DraggableMarker from "../DraggableMarker.svelte";
+  import MetricDetails from "../MetricDetails.svelte";
+  import { metrics } from "../metrics";
   import Picker from "../Picker.svelte";
   import ShowAllLayers from "../ShowAllLayers.svelte";
   import { gj, mode, state } from "../state";
 
   export let idx: number;
+
+  let metric = metrics.SA10;
 
   function onKeyDown(e: KeyboardEvent) {
     if (e.key == "Escape") {
@@ -45,6 +49,9 @@
       bind:value={$state.crossings[idx].properties.sa10}
       choices={scores()}
     />
+
+    <p>{metric.description}</p>
+    <MetricDetails {metric} />
   </div>
 
   <div slot="map">
