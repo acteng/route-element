@@ -63,7 +63,7 @@
         filter={["!=", ["id"], idx]}
         layout={{
           "icon-image": "crossing",
-          "icon-size": 1.0,
+          "icon-size": 0.1,
         }}
         paint={{
           "icon-color": "black",

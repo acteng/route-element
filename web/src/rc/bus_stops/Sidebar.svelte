@@ -1,22 +1,14 @@
 <script lang="ts">
   import ClickLink from "../ClickLink.svelte";
-  import { map, mode, state } from "../state";
-  import { blankBusStop } from "./types";
-
-  function newBusStop() {
-    if (!$map) {
-      return;
-    }
-    let f = blankBusStop($state.bus_stops.length, $map.getCenter().toArray());
-    $state.bus_stops = [...$state.bus_stops, f];
-    $mode = { kind: "edit-bus-stop", idx: $state.bus_stops.length - 1 };
-  }
+  import { mode, state } from "../state";
 </script>
 
 Bus stops:
 
 <div>
-  <button on:click={newBusStop}>New bus stop</button>
+  <button on:click={() => ($mode = { kind: "new-point", obj: "bus stop" })}>
+    New bus stop
+  </button>
 </div>
 
 <ol>

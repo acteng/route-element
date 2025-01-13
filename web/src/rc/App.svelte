@@ -16,6 +16,7 @@
   import EditLinkMode from "./links/EditLinkMode.svelte";
   import EditQuestionMode from "./links/EditQuestionMode.svelte";
   import NeutralMode from "./NeutralMode.svelte";
+  import NewPointMode from "./NewPointMode.svelte";
   import EditSideRoadMode from "./side_roads/EditSideRoadMode.svelte";
   import { map, mode, state } from "./state";
 
@@ -65,6 +66,8 @@
         <div bind:this={mapDiv} />
         {#if $mode.kind == "neutral"}
           <NeutralMode />
+        {:else if $mode.kind == "new-point"}
+          <NewPointMode obj={$mode.obj} />
         {:else if $mode.kind == "edit-link"}
           <EditLinkMode idx={$mode.idx} />
         {:else if $mode.kind == "edit-jat"}

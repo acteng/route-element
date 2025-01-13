@@ -27,6 +27,7 @@ export function gj(features: Feature[]): FeatureCollection {
 
 type Mode =
   | { kind: "neutral" }
+  | { kind: "new-point"; obj: "jat" | "bus stop" | "crossing" }
   | { kind: "edit-link"; idx: number }
   | { kind: "edit-jat"; idx: number }
   | { kind: "edit-jat-detail"; idx: number; stage: "existing" | "proposed" }
