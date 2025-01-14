@@ -2,7 +2,7 @@ use std::sync::Once;
 
 use anyhow::{Context, Result};
 use flatgeobuf::{FeatureProperties, FgbFeature};
-use geo::{BoundingRect, Haversine, Intersects, Length, LineString, MultiPolygon};
+use geo::{BoundingRect, Coord, Haversine, Intersects, Length, LineString, MultiPolygon, Rect};
 use geojson::Feature;
 use serde::Serialize;
 
@@ -37,6 +37,24 @@ pub async fn eval_route(input: JsValue, base_url: String) -> Result<String, JsVa
         "os_links": geojson::ser::to_feature_collection_string(&os_links).unwrap(),
     })
     .to_string())
+}
+
+/// Takes a GeoJSON `Feature<LineString>` and returns a JSON object with some info
+#[wasm_bindgen(js_name = makeRouteSnapper)]
+pub async fn make_route_snapper(
+    base_url: String,
+    x1: f64,
+    y1: f64,
+    x2: f64,
+    y2: f64,
+) -> Result<Vec<u8>, JsValue> {
+    setup();
+
+    let bbox = Rect::new(Coord { x: x1, y: y1 }, Coord { x: x2, y: y2 });
+    let graph = os::make_route_snapper(&base_url, bbox)
+        .await
+        .map_err(err_to_js)?;
+    bincode::serialize(&graph).map_err(err_to_js)
 }
 
 fn setup() {

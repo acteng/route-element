@@ -41,7 +41,6 @@
 
   async function drawRoute() {
     await setupRouteTool($map!);
-    $mode = { kind: "draw-route" };
   }
 </script>
 

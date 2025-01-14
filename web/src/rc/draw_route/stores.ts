@@ -1,5 +1,6 @@
+import init, { makeRouteSnapper } from "backend";
 import type { Map } from "maplibre-gl";
-import { init, RouteTool } from "route-snapper-ts";
+import { init as init2, RouteTool } from "route-snapper-ts";
 import { emptyGeojson } from "svelte-utils/map";
 import { get, writable, type Writable } from "svelte/store";
 import { blankLink } from "../links/types";
@@ -15,22 +16,37 @@ export const waypoints: Writable<Waypoint[]> = writable([]);
 
 export async function setupRouteTool(map: Map) {
   await init();
+  await init2();
 
-  let url = "https://atip.uk/route-snappers/v3/LAD_Leeds.bin.gz";
-  let resp = await fetch(url);
-  let buffer = await resp.arrayBuffer();
-  new Uint8Array(buffer);
+  let baseURL =
+    import.meta.env.MODE == "development"
+      ? "http://localhost:5173/route-element/route-element"
+      : "https://assets.od2net.org/route-element";
 
-  // The stores are unused; the WASM API is used directly. This TS wrapper is unused.
-  routeTool.set(
-    new RouteTool(
-      map,
-      new Uint8Array(buffer),
-      writable(emptyGeojson()),
-      writable(true),
-      writable(0),
-    ),
-  );
+  let b = map.getBounds();
+  try {
+    let buffer = await makeRouteSnapper(
+      baseURL,
+      b.getEast(),
+      b.getNorth(),
+      b.getWest(),
+      b.getSouth(),
+    );
+
+    // The stores are unused; the WASM API is used directly. This TS wrapper is unused.
+    routeTool.set(
+      new RouteTool(
+        map,
+        buffer,
+        writable(emptyGeojson()),
+        writable(true),
+        writable(0),
+      ),
+    );
+    mode.set({ kind: "draw-route" });
+  } catch (err) {
+    window.alert(err);
+  }
 }
 
 export function finishRoute() {

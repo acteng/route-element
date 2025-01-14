@@ -236,3 +236,24 @@ fn dijkstra(
     }
     Some((path_nodes, path_links))
 }
+
+pub async fn make_route_snapper(base_url: &str, bbox: Rect) -> Result<usize> {
+    // Before downloading, sanity check the bbox size
+    let dist = Haversine::distance(bbox.min().into(), bbox.max().into());
+    if dist > 3000.0 {
+        bail!(
+            "Zoom in more to draw a route. The map currently covers a diagonal distance of {dist}m"
+        );
+    }
+
+    let url1 = format!("{base_url}/os_nodes.fgb");
+    let url2 = format!("{base_url}/os_links.fgb");
+    let nodes = fgb::read_fgb(bbox, &url1, read_node)
+        .await
+        .context("nodes")?;
+    let links = fgb::read_fgb(bbox, &url2, read_link)
+        .await
+        .context("links")?;
+
+    bail!("got {} nodes and {} links", nodes.len(), links.len());
+}
