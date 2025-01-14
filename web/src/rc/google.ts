@@ -46,6 +46,8 @@ async function getGoogleSessionKey(apiKey: string): Promise<string> {
           mapType: "satellite",
           language: "en-GB",
           region: "GB",
+          layerTypes: ["layerRoadmap"],
+          overlay: false,
         }),
       },
     );
