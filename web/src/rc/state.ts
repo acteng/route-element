@@ -29,12 +29,14 @@ type Mode =
   | { kind: "neutral" }
   | { kind: "new-point"; obj: "jat" | "bus stop" | "crossing" }
   | { kind: "edit-link"; idx: number }
+  | { kind: "link-questions"; idx: number }
   | { kind: "edit-jat"; idx: number }
   | { kind: "edit-jat-detail"; idx: number; stage: "existing" | "proposed" }
   | { kind: "edit-bus-stop"; idx: number }
+  | { kind: "bus-stop-questions" }
   | { kind: "edit-crossing"; idx: number }
   | { kind: "edit-side-road"; idx: number }
-  | { kind: "edit-question"; idx: number }
+  | { kind: "side-road-questions" }
   | { kind: "draw-route" };
 export let mode: Writable<Mode> = writable({ kind: "neutral" });
 

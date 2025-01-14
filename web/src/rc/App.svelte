@@ -8,6 +8,7 @@
   } from "svelte-utils/two_column_layout";
   import busStopIcon from "./assets/bus_stop.png?url";
   import crossingIcon from "./assets/crossing.png?url";
+  import BusStopQuestionsMode from "./bus_stops/BusStopQuestionsMode.svelte";
   import EditBusStopMode from "./bus_stops/EditBusStopMode.svelte";
   import ContextualLayers from "./context/ContextualLayers.svelte";
   import EditCrossingMode from "./crossings/EditCrossingMode.svelte";
@@ -17,10 +18,11 @@
   import EditJATDetailMode from "./jat/EditJATDetailMode.svelte";
   import EditJATMode from "./jat/EditJATMode.svelte";
   import EditLinkMode from "./links/EditLinkMode.svelte";
-  import EditQuestionMode from "./links/EditQuestionMode.svelte";
+  import LinkQuestionsMode from "./links/LinkQuestionsMode.svelte";
   import NeutralMode from "./NeutralMode.svelte";
   import NewPointMode from "./NewPointMode.svelte";
   import EditSideRoadMode from "./side_roads/EditSideRoadMode.svelte";
+  import SideRoadQuestionsMode from "./side_roads/SideRoadQuestionsMode.svelte";
   import { map, mode, state } from "./state";
 
   $: window.localStorage.setItem("tmp-rcv2", JSON.stringify($state));
@@ -83,8 +85,12 @@
           <EditCrossingMode idx={$mode.idx} />
         {:else if $mode.kind == "edit-side-road"}
           <EditSideRoadMode idx={$mode.idx} />
-        {:else if $mode.kind == "edit-question"}
-          <EditQuestionMode qIdx={$mode.idx} />
+        {:else if $mode.kind == "link-questions"}
+          <LinkQuestionsMode qIdx={$mode.idx} />
+        {:else if $mode.kind == "side-road-questions"}
+          <SideRoadQuestionsMode />
+        {:else if $mode.kind == "bus-stop-questions"}
+          <BusStopQuestionsMode />
         {:else if $mode.kind == "draw-route" && $map}
           <DrawRouteMode
             map={$map}

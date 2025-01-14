@@ -11,6 +11,16 @@ Bus stops:
   </button>
 </div>
 
+<div>
+  <ClickLink on:click={() => ($mode = { kind: "bus-stop-questions" })}>
+    ST20
+  </ClickLink>:
+  <progress
+    value={$state.bus_stops.filter((f) => f.properties.st20 != "").length}
+    max={$state.bus_stops.length}
+  />
+</div>
+
 <ol>
   {#each $state.bus_stops as bus_stop, idx}
     <li>
@@ -23,3 +33,9 @@ Bus stops:
     </li>
   {/each}
 </ol>
+
+<style>
+  progress {
+    width: fit-content;
+  }
+</style>

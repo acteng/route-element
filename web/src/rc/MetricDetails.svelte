@@ -16,7 +16,9 @@
   <b>0</b>
   : {metric.red}
 </p>
-<p>
-  <b>Critical</b>
-  : {metric.critical}
-</p>
+{#if metric.critical}
+  <p>
+    <b>Critical</b>
+    : {metric.critical}
+  </p>
+{/if}

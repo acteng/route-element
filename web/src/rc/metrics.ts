@@ -190,4 +190,14 @@ Insufficient clearance on a curve.`,
     red: `Guard railing used to control behaviour in complex environments.`,
     critical: `Guard railing used as standard without consideration of inherent safety risks.`,
   },
+
+  ST20: {
+    description: "Interactions at bus stops.",
+    green:
+      "At bus stops, cyclists are protected from buses and traffic and interactions between pedestrians and cyclists are likely to be low-level.",
+    amber:
+      "At bus stops, cyclists are protected from buses and traffic, but there are likely to be medium-level interactions between pedestrians and cyclists.",
+    red: "At bus stops, cyclists regularly have to wait behind buses or overtake them in general traffic lanes. Or, there are likely to be high-level interactions between pedestrians and cyclists.",
+    critical: "",
+  },
 };

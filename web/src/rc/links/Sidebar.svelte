@@ -40,7 +40,7 @@ Questions:
 <ol>
   {#each questions as q, idx}
     <li>
-      <ClickLink on:click={() => ($mode = { kind: "edit-question", idx })}>
+      <ClickLink on:click={() => ($mode = { kind: "link-questions", idx })}>
         {q.name}
       </ClickLink>:
       <progress
