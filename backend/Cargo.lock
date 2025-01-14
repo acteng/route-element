@@ -87,6 +87,7 @@ dependencies = [
  "geozero",
  "log",
  "petgraph",
+ "route-snapper-graph",
  "rstar",
  "serde",
  "serde-wasm-bindgen",
@@ -1238,6 +1239,15 @@ name = "robust"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cbf4a6aa5f6d6888f39e980649f3ad6b666acdce1d78e95b8a2cb076e687ae30"
+
+[[package]]
+name = "route-snapper-graph"
+version = "0.1.0"
+source = "git+https://github.com/dabreegster/route_snapper#09810554aa2f30a3a6078a4f8d8147a5ce2f9992"
+dependencies = [
+ "geo",
+ "serde",
+]
 
 [[package]]
 name = "rstar"

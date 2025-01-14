@@ -8,6 +8,7 @@ use geo::{
 };
 use log::info;
 use petgraph::graphmap::UnGraphMap;
+use route_snapper_graph::{Edge, NodeID, RouteSnapperMap};
 use rstar::{primitives::GeomWithData, RTree};
 use serde::Serialize;
 
@@ -237,10 +238,10 @@ fn dijkstra(
     Some((path_nodes, path_links))
 }
 
-pub async fn make_route_snapper(base_url: &str, bbox: Rect) -> Result<usize> {
+pub async fn make_route_snapper(base_url: &str, bbox: Rect) -> Result<RouteSnapperMap> {
     // Before downloading, sanity check the bbox size
     let dist = Haversine::distance(bbox.min().into(), bbox.max().into());
-    if dist > 3000.0 {
+    if dist > 25_000.0 {
         bail!(
             "Zoom in more to draw a route. The map currently covers a diagonal distance of {dist}m"
         );
@@ -248,12 +249,46 @@ pub async fn make_route_snapper(base_url: &str, bbox: Rect) -> Result<usize> {
 
     let url1 = format!("{base_url}/os_nodes.fgb");
     let url2 = format!("{base_url}/os_links.fgb");
-    let nodes = fgb::read_fgb(bbox, &url1, read_node)
+    let os_nodes = fgb::read_fgb(bbox, &url1, read_node)
         .await
         .context("nodes")?;
-    let links = fgb::read_fgb(bbox, &url2, read_link)
+    let os_links = fgb::read_fgb(bbox, &url2, read_link)
         .await
         .context("links")?;
 
-    bail!("got {} nodes and {} links", nodes.len(), links.len());
+    // Convert to RouteSnapperMap
+    let mut node_lookup: HashMap<String, NodeID> = HashMap::new();
+    let mut nodes: Vec<Coord> = Vec::new();
+    for node in os_nodes {
+        node_lookup.insert(node.id, NodeID(nodes.len() as u32));
+        nodes.push(node.geometry.into());
+    }
+
+    let mut edges = Vec::new();
+    for link in os_links {
+        // Skip links crossing the bbox
+        if let (Some(node1), Some(node2)) = (
+            node_lookup.get(&link.start_node).cloned(),
+            node_lookup.get(&link.end_node).cloned(),
+        ) {
+            edges.push(Edge {
+                node1,
+                node2,
+                geometry: link.geometry,
+                name: None,
+
+                // Isn't serialized, doesn't matter
+                length_meters: 0.0,
+                forward_cost: None,
+                backward_cost: None,
+            });
+        }
+    }
+
+    Ok(RouteSnapperMap {
+        nodes,
+        edges,
+        override_forward_costs: Vec::new(),
+        override_backward_costs: Vec::new(),
+    })
 }
