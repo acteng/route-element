@@ -9,12 +9,17 @@
     f.geometry.coordinates.push(e.detail.lngLat.toArray());
     f = f;
   }
+
+  function removePoint(idx: number) {
+    f.geometry.coordinates.splice(idx, 1);
+    f = f;
+  }
 </script>
 
 <MapEvents on:click={onMapClick} />
 
-{#each f.geometry.coordinates as pt}
-  <Marker draggable bind:lngLat={pt}>
+{#each f.geometry.coordinates as pt, idx}
+  <Marker draggable bind:lngLat={pt} on:contextmenu={() => removePoint(idx)}>
     <span class="dot" />
   </Marker>
 {/each}
