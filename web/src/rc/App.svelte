@@ -11,6 +11,8 @@
   import EditBusStopMode from "./bus_stops/EditBusStopMode.svelte";
   import ContextualLayers from "./context/ContextualLayers.svelte";
   import EditCrossingMode from "./crossings/EditCrossingMode.svelte";
+  import DrawRouteMode from "./draw_route/DrawRouteMode.svelte";
+  import { finishRoute } from "./draw_route/stores";
   import { getStyle } from "./google";
   import EditJATDetailMode from "./jat/EditJATDetailMode.svelte";
   import EditJATMode from "./jat/EditJATMode.svelte";
@@ -83,6 +85,13 @@
           <EditSideRoadMode idx={$mode.idx} />
         {:else if $mode.kind == "edit-question"}
           <EditQuestionMode qIdx={$mode.idx} />
+        {:else if $mode.kind == "draw-route" && $map}
+          <DrawRouteMode
+            map={$map}
+            editingExisting={false}
+            finish={finishRoute}
+            cancel={() => ($mode = { kind: "neutral" })}
+          />
         {/if}
 
         <ContextualLayers />

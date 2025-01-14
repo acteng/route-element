@@ -34,7 +34,8 @@ type Mode =
   | { kind: "edit-bus-stop"; idx: number }
   | { kind: "edit-crossing"; idx: number }
   | { kind: "edit-side-road"; idx: number }
-  | { kind: "edit-question"; idx: number };
+  | { kind: "edit-question"; idx: number }
+  | { kind: "draw-route" };
 export let mode: Writable<Mode> = writable({ kind: "neutral" });
 
 export function checkState(x: any): boolean {

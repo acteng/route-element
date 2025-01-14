@@ -11,10 +11,11 @@
   import BusStopSidebar from "./bus_stops/Sidebar.svelte";
   import { numId } from "./common";
   import CrossingSidebar from "./crossings/Sidebar.svelte";
+  import { setupRouteTool } from "./draw_route/stores";
   import JATSidebar from "./jat/Sidebar.svelte";
   import LinkSidebar from "./links/Sidebar.svelte";
   import SideRoadSidebar from "./side_roads/Sidebar.svelte";
-  import { checkState, gj, mode, state } from "./state";
+  import { checkState, gj, map, mode, state } from "./state";
 
   let showImport = false;
   let fileInput: HTMLInputElement;
@@ -37,6 +38,11 @@
     $state.crossings = [];
     $state.side_roads = [];
   }
+
+  async function drawRoute() {
+    await setupRouteTool($map!);
+    $mode = { kind: "draw-route" };
+  }
 </script>
 
 <SplitComponent>
@@ -54,6 +60,8 @@
       </button>
       <button class="secondary" on:click={clear}>Clear</button>
     </div>
+
+    <button class="secondary" on:click={drawRoute}>Draw an entire route</button>
 
     <hr />
 
