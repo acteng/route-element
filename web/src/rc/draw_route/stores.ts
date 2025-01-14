@@ -1,8 +1,9 @@
 import type { Map } from "maplibre-gl";
 import { init, RouteTool } from "route-snapper-ts";
 import { emptyGeojson } from "svelte-utils/map";
-import { writable, type Writable } from "svelte/store";
-import { mode } from "../state";
+import { get, writable, type Writable } from "svelte/store";
+import { blankLink } from "../links/types";
+import { mode, state } from "../state";
 
 export interface Waypoint {
   point: [number, number];
@@ -33,6 +34,32 @@ export async function setupRouteTool(map: Map) {
 }
 
 export function finishRoute() {
+  try {
+    let feature = JSON.parse(
+      get(routeTool)!.inner.calculateRoute(get(waypoints)),
+    );
+    // TODO Is this possible still?
+    if (!feature) {
+      window.alert("No route drawn");
+      return;
+    }
+
+    // TODO Make multiple links when freehand sections appear
+
+    let f = blankLink(get(state).links.length);
+    f.geometry = feature.geometry;
+    // Discard waypoints and other things
+    f.properties.name = feature.properties.route_name;
+
+    state.update((x) => {
+      x.links.push(f);
+      return x;
+    });
+    mode.set({ kind: "edit-link", idx: get(state).links.length - 1 });
+  } catch (err) {
+    window.alert(`Bug: ${err}`);
+  }
+
   waypoints.set([]);
   mode.set({ kind: "neutral" });
 }
