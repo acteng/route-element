@@ -21,7 +21,7 @@
   </div>
 {/if}
 
-<VectorTileSource url={"pmtiles://http://atip.uk/layers/v1/bus_stops.pmtiles"}>
+<VectorTileSource url={"pmtiles://https://atip.uk/layers/v1/bus_stops.pmtiles"}>
   <CircleLayer
     sourceLayer="bus_stops"
     paint={{

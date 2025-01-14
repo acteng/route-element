@@ -43,7 +43,7 @@
   </div>
 {/if}
 
-<VectorTileSource url={"pmtiles://http://atip.uk/layers/v1/crossings.pmtiles"}>
+<VectorTileSource url={"pmtiles://https://atip.uk/layers/v1/crossings.pmtiles"}>
   <LineLayer
     sourceLayer="crossings"
     filter={isLine}
