@@ -1,10 +1,11 @@
+use std::collections::HashMap;
 use std::sync::{LazyLock, Mutex, Once};
 
 use anyhow::{Context, Result};
 use flatgeobuf::{FeatureProperties, FgbFeature};
 use geo::{BoundingRect, Coord, Haversine, Intersects, Length, LineString, MultiPolygon, Rect};
 use geojson::Feature;
-use route_snapper_graph::RouteSnapperMap;
+use route_snapper_graph::{EdgeID, NodeID, RouteSnapperMap};
 use serde::{Deserialize, Serialize};
 
 use wasm_bindgen::prelude::*;
@@ -15,7 +16,13 @@ pub mod os;
 static START: Once = Once::new();
 
 // Messily just store global state between makeRouteSnapper and getSideRoads
-static LAST_GRAPH: LazyLock<Mutex<Option<RouteSnapperMap>>> = LazyLock::new(|| Mutex::new(None));
+pub struct OsGraph {
+    graph: RouteSnapperMap,
+    links_per_node: HashMap<NodeID, Vec<EdgeID>>,
+    // TODO Might break with multi-graphs
+    node_pair_to_edge: HashMap<(NodeID, NodeID), EdgeID>,
+}
+static LAST_GRAPH: LazyLock<Mutex<Option<OsGraph>>> = LazyLock::new(|| Mutex::new(None));
 
 /// Takes a GeoJSON `Feature<LineString>` and returns a JSON object with some info
 #[wasm_bindgen(js_name = evalRoute)]
@@ -55,11 +62,11 @@ pub async fn make_route_snapper(
     setup();
 
     let bbox = Rect::new(Coord { x: x1, y: y1 }, Coord { x: x2, y: y2 });
-    let graph = os::make_route_snapper(&base_url, bbox)
+    let os_graph = os::make_route_snapper(&base_url, bbox)
         .await
         .map_err(err_to_js)?;
-    let result = bincode::serialize(&graph).map_err(err_to_js);
-    *LAST_GRAPH.lock().unwrap() = Some(graph);
+    let result = bincode::serialize(&os_graph.graph).map_err(err_to_js);
+    *LAST_GRAPH.lock().unwrap() = Some(os_graph);
     result
 }
 
@@ -136,5 +143,6 @@ async fn read_all_pop_density(line: &LineString, base_url: &str) -> Result<Vec<P
 #[derive(Deserialize)]
 pub struct RouteNode {
     snapped: Option<u32>,
+    #[allow(unused)]
     free: Option<[f64; 2]>,
 }

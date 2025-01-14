@@ -89,9 +89,11 @@ function addSideRoads(nodes: Node[]) {
   state.update((x) => {
     for (let f of JSON.parse(getSideRoads(nodes)).features) {
       // Mimic blankSideRoad
-      f.properties.name = "Untitled side road";
-      f.properties.sa01 = "";
-      f.properties.color = colors[x.side_roads.length % colors.length];
+      f.properties = {
+        name: "Untitled side road",
+        sa01: "",
+        color: colors[x.side_roads.length % colors.length],
+      };
       x.side_roads.push(f);
     }
     return x;

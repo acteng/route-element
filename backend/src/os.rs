@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use anyhow::{bail, Context, Result};
 use flatgeobuf::{FeatureProperties, FgbFeature};
@@ -6,14 +6,14 @@ use geo::{
     BoundingRect, Closest, ClosestPoint, Coord, Distance, Haversine, Length, LineLocatePoint,
     LineString, Point, Rect,
 };
-use geojson::GeoJson;
+use geojson::{Feature, GeoJson, Geometry};
 use log::info;
 use petgraph::graphmap::UnGraphMap;
-use route_snapper_graph::{Edge, NodeID, RouteSnapperMap};
+use route_snapper_graph::{Edge, EdgeID, NodeID, RouteSnapperMap};
 use rstar::{primitives::GeomWithData, RTree};
 use serde::Serialize;
 
-use crate::{fgb, RouteNode};
+use crate::{fgb, OsGraph, RouteNode};
 
 #[derive(Clone, Serialize)]
 pub struct Link {
@@ -239,7 +239,7 @@ fn dijkstra(
     Some((path_nodes, path_links))
 }
 
-pub async fn make_route_snapper(base_url: &str, bbox: Rect) -> Result<RouteSnapperMap> {
+pub async fn make_route_snapper(base_url: &str, bbox: Rect) -> Result<OsGraph> {
     // Before downloading, sanity check the bbox size
     let dist = Haversine::distance(bbox.min().into(), bbox.max().into());
     if dist > 25_000.0 {
@@ -264,6 +264,8 @@ pub async fn make_route_snapper(base_url: &str, bbox: Rect) -> Result<RouteSnapp
         node_lookup.insert(node.id, NodeID(nodes.len() as u32));
         nodes.push(node.geometry.into());
     }
+    let mut links_per_node: HashMap<NodeID, Vec<EdgeID>> = HashMap::new();
+    let mut node_pair_to_edge: HashMap<(NodeID, NodeID), EdgeID> = HashMap::new();
 
     let mut edges = Vec::new();
     for link in os_links {
@@ -272,6 +274,18 @@ pub async fn make_route_snapper(base_url: &str, bbox: Rect) -> Result<RouteSnapp
             node_lookup.get(&link.start_node).cloned(),
             node_lookup.get(&link.end_node).cloned(),
         ) {
+            let edge_id = EdgeID(edges.len() as u32);
+            links_per_node
+                .entry(node1)
+                .or_insert_with(Vec::new)
+                .push(edge_id);
+            links_per_node
+                .entry(node2)
+                .or_insert_with(Vec::new)
+                .push(edge_id);
+            node_pair_to_edge.insert((node1, node2), edge_id);
+            node_pair_to_edge.insert((node2, node1), edge_id);
+
             edges.push(Edge {
                 node1,
                 node2,
@@ -286,18 +300,51 @@ pub async fn make_route_snapper(base_url: &str, bbox: Rect) -> Result<RouteSnapp
         }
     }
 
-    Ok(RouteSnapperMap {
-        nodes,
-        edges,
-        override_forward_costs: Vec::new(),
-        override_backward_costs: Vec::new(),
+    Ok(OsGraph {
+        links_per_node,
+        node_pair_to_edge,
+        graph: RouteSnapperMap {
+            nodes,
+            edges,
+            override_forward_costs: Vec::new(),
+            override_backward_costs: Vec::new(),
+        },
     })
 }
 
-pub fn get_side_roads(graph: &RouteSnapperMap, full_path: Vec<RouteNode>) -> GeoJson {
-    let mut features = Vec::new();
+pub fn get_side_roads(graph: &OsGraph, full_path: Vec<RouteNode>) -> GeoJson {
+    let mut batches: Vec<Vec<NodeID>> = Vec::new();
+    for batch in full_path.chunk_by(|a, b| a.snapped.is_some() == b.snapped.is_some()) {
+        // Ignore freehand segments
+        if batch[0].snapped.is_some() {
+            batches.push(
+                batch
+                    .into_iter()
+                    .map(|n| NodeID(n.snapped.unwrap()))
+                    .collect(),
+            );
+        }
+    }
 
-    info!("got {} nodes", full_path.len());
+    // TODO This'll usually have an error at the beginning and end, extending the route itself.
+    // Hard to distinguish.
+    let mut features = Vec::new();
+    for batch in batches {
+        let edges_in_this_batch: HashSet<EdgeID> = batch
+            .windows(2)
+            .map(|pair| graph.node_pair_to_edge[&(pair[0], pair[1])])
+            .collect();
+
+        for node in batch {
+            for edge in &graph.links_per_node[&node] {
+                if !edges_in_this_batch.contains(edge) {
+                    features.push(Feature::from(Geometry::from(
+                        &graph.graph.edges[edge.0 as usize].geometry,
+                    )));
+                }
+            }
+        }
+    }
 
     GeoJson::from(features)
 }
