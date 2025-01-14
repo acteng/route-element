@@ -14,14 +14,20 @@
     | "crossings"
     | "jats"
     | "side_roads";
-  export let showLinkColor = false;
+  export let showColor:
+    | ""
+    | "links"
+    | "bus_stops"
+    | "crossings"
+    | "jats"
+    | "side_roads" = "";
 </script>
 
 {#if except != "links"}
   <GeoJSON data={gj($state.links)}>
     <LineLayer
       paint={{
-        "line-color": showLinkColor ? ["get", "color"] : "black",
+        "line-color": showColor == "links" ? ["get", "color"] : "black",
         "line-width": 6,
       }}
     />
@@ -36,7 +42,7 @@
         "icon-size": 3.0,
       }}
       paint={{
-        "icon-color": "black",
+        "icon-color": showColor == "bus_stops" ? ["get", "color"] : "black",
       }}
     />
   </GeoJSON>
@@ -50,7 +56,7 @@
         "icon-size": 0.1,
       }}
       paint={{
-        "icon-color": "black",
+        "icon-color": showColor == "crossings" ? ["get", "color"] : "black",
       }}
     />
   </GeoJSON>
@@ -62,7 +68,7 @@
       paint={{
         "circle-color": "rgba(0,0,0,0)",
         "circle-stroke-width": 5,
-        "circle-stroke-color": "black",
+        "circle-stroke-color": showColor == "jats" ? ["get", "color"] : "black",
         "circle-radius": 20,
       }}
     />
@@ -73,7 +79,7 @@
   <GeoJSON data={gj($state.side_roads)}>
     <LineLayer
       paint={{
-        "line-color": "black",
+        "line-color": showColor == "side_roads" ? ["get", "color"] : "black",
         "line-width": 3,
       }}
     />

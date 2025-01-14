@@ -45,6 +45,6 @@
   </div>
 
   <div slot="map">
-    <ShowAllLayers except="" />
+    <ShowAllLayers showColor="side_roads" except="" />
   </div>
 </SplitComponent>

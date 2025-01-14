@@ -51,6 +51,6 @@
   </div>
 
   <div slot="map">
-    <ShowAllLayers showLinkColor except="" />
+    <ShowAllLayers showColor="links" except="" />
   </div>
 </SplitComponent>

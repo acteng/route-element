@@ -22,31 +22,29 @@
   <div slot="sidebar">
     <button on:click={() => ($mode = { kind: "neutral" })}>Done</button>
 
-    <h2>
-      ST20: bus stops
-      <p>{metric.description}</p>
+    <h2>ST20: bus stops</h2>
+    <p>{metric.description}</p>
 
-      <ol>
-        {#each $state.bus_stops as bs}
-          <li>
-            <span style:color={bs.properties.color}>
-              {bs.properties.name}
-            </span>
+    <ol>
+      {#each $state.bus_stops as bs}
+        <li>
+          <span style:color={bs.properties.color}>
+            {bs.properties.name}
+          </span>
 
-            <Picker
-              k="horiz-radio"
-              bind:value={bs.properties.st20}
-              choices={scores()}
-            />
-          </li>
-        {/each}
-      </ol>
+          <Picker
+            k="horiz-radio"
+            bind:value={bs.properties.st20}
+            choices={scores()}
+          />
+        </li>
+      {/each}
+    </ol>
 
-      <MetricDetails {metric} />
-    </h2>
+    <MetricDetails {metric} />
   </div>
 
   <div slot="map">
-    <ShowAllLayers except="" />
+    <ShowAllLayers showColor="bus_stops" except="" />
   </div>
 </SplitComponent>
