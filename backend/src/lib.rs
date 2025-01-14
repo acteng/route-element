@@ -1,10 +1,11 @@
-use std::sync::Once;
+use std::sync::{LazyLock, Mutex, Once};
 
 use anyhow::{Context, Result};
 use flatgeobuf::{FeatureProperties, FgbFeature};
 use geo::{BoundingRect, Coord, Haversine, Intersects, Length, LineString, MultiPolygon, Rect};
 use geojson::Feature;
-use serde::Serialize;
+use route_snapper_graph::RouteSnapperMap;
+use serde::{Deserialize, Serialize};
 
 use wasm_bindgen::prelude::*;
 
@@ -12,6 +13,9 @@ pub mod fgb;
 pub mod os;
 
 static START: Once = Once::new();
+
+// Messily just store global state between makeRouteSnapper and getSideRoads
+static LAST_GRAPH: LazyLock<Mutex<Option<RouteSnapperMap>>> = LazyLock::new(|| Mutex::new(None));
 
 /// Takes a GeoJSON `Feature<LineString>` and returns a JSON object with some info
 #[wasm_bindgen(js_name = evalRoute)]
@@ -39,7 +43,7 @@ pub async fn eval_route(input: JsValue, base_url: String) -> Result<String, JsVa
     .to_string())
 }
 
-/// Takes a GeoJSON `Feature<LineString>` and returns a JSON object with some info
+/// Returns a bincoded route snapper graph covering a bbox
 #[wasm_bindgen(js_name = makeRouteSnapper)]
 pub async fn make_route_snapper(
     base_url: String,
@@ -54,7 +58,21 @@ pub async fn make_route_snapper(
     let graph = os::make_route_snapper(&base_url, bbox)
         .await
         .map_err(err_to_js)?;
-    bincode::serialize(&graph).map_err(err_to_js)
+    let result = bincode::serialize(&graph).map_err(err_to_js);
+    *LAST_GRAPH.lock().unwrap() = Some(graph);
+    result
+}
+
+/// Takes a list of Nodes from the route snapper and returns a FeatureCollection of LineStrings
+/// representing side roads crossed by the path
+#[wasm_bindgen(js_name = getSideRoads)]
+pub fn get_side_roads(input: JsValue) -> Result<String, JsValue> {
+    if let Some(graph) = LAST_GRAPH.lock().unwrap().as_ref() {
+        let full_path: Vec<RouteNode> = serde_wasm_bindgen::from_value(input)?;
+        serde_json::to_string(&os::get_side_roads(graph, full_path)).map_err(err_to_js)
+    } else {
+        Err(JsValue::from_str("have to call makeRouteSnapper first"))
+    }
 }
 
 fn setup() {
@@ -113,4 +131,10 @@ async fn read_all_pop_density(line: &LineString, base_url: &str) -> Result<Vec<P
         .context("pop_density")?;
     polygons.retain(|x| x.geometry.intersects(line));
     Ok(polygons)
+}
+
+#[derive(Deserialize)]
+pub struct RouteNode {
+    snapped: Option<u32>,
+    free: Option<[f64; 2]>,
 }

@@ -60,7 +60,7 @@
       <button class="secondary" on:click={clear}>Clear</button>
     </div>
 
-    <button class="secondary" on:click={drawRoute}>Draw an entire route</button>
+    <button on:click={drawRoute}>Draw an entire route</button>
 
     <hr />
 

@@ -1,8 +1,9 @@
-import init, { makeRouteSnapper } from "backend";
+import init, { getSideRoads, makeRouteSnapper } from "backend";
 import type { Map } from "maplibre-gl";
 import { init as init2, RouteTool } from "route-snapper-ts";
 import { emptyGeojson } from "svelte-utils/map";
 import { get, writable, type Writable } from "svelte/store";
+import { colors } from "../common";
 import { blankLink } from "../links/types";
 import { mode, state } from "../state";
 
@@ -60,6 +61,8 @@ export function finishRoute() {
       return;
     }
 
+    addSideRoads(feature.properties.full_path);
+
     // TODO Make multiple links when freehand sections appear
 
     let f = blankLink(get(state).links.length);
@@ -78,4 +81,19 @@ export function finishRoute() {
 
   waypoints.set([]);
   mode.set({ kind: "neutral" });
+}
+
+type Node = { snapped: number } | { free: [number, number] };
+
+function addSideRoads(nodes: Node[]) {
+  state.update((x) => {
+    for (let f of JSON.parse(getSideRoads(nodes)).features) {
+      // Mimic blankSideRoad
+      f.properties.name = "Untitled side road";
+      f.properties.sa01 = "";
+      f.properties.color = colors[x.side_roads.length % colors.length];
+      x.side_roads.push(f);
+    }
+    return x;
+  });
 }

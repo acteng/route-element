@@ -6,13 +6,14 @@ use geo::{
     BoundingRect, Closest, ClosestPoint, Coord, Distance, Haversine, Length, LineLocatePoint,
     LineString, Point, Rect,
 };
+use geojson::GeoJson;
 use log::info;
 use petgraph::graphmap::UnGraphMap;
 use route_snapper_graph::{Edge, NodeID, RouteSnapperMap};
 use rstar::{primitives::GeomWithData, RTree};
 use serde::Serialize;
 
-use crate::fgb;
+use crate::{fgb, RouteNode};
 
 #[derive(Clone, Serialize)]
 pub struct Link {
@@ -291,4 +292,12 @@ pub async fn make_route_snapper(base_url: &str, bbox: Rect) -> Result<RouteSnapp
         override_forward_costs: Vec::new(),
         override_backward_costs: Vec::new(),
     })
+}
+
+pub fn get_side_roads(graph: &RouteSnapperMap, full_path: Vec<RouteNode>) -> GeoJson {
+    let mut features = Vec::new();
+
+    info!("got {} nodes", full_path.len());
+
+    GeoJson::from(features)
 }
