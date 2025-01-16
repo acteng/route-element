@@ -28,4 +28,5 @@ cd data_prep
 osmium tags-filter ~/Downloads/england-latest.osm.pbf n/highway=traffic_signals -o tsigs.osm.pbf
 osmium export tsigs.osm.pbf -o tsigs.geojson
 cargo run --release -- /home/dabreegster/cloudflare_sync/route-element/os_nodes.fgb tsigs.geojson
+ogr2ogr tsig_os_nodes.fgb tsig_os_nodes.geojson
 ```

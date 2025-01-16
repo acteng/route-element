@@ -1,11 +1,10 @@
 use std::collections::HashSet;
 use std::fs::File;
-use std::io::{BufReader, BufWriter};
+use std::io::BufReader;
 
 use anyhow::{bail, Result};
 use flatgeobuf::{
-    FallibleStreamingIterator, FeatureProperties, FgbFeature, FgbReader, FgbWriter, GeometryType,
-    GeozeroGeometry,
+    FallibleStreamingIterator, FeatureProperties, FgbFeature, FgbReader, GeozeroGeometry,
 };
 use geo::{Distance, Haversine, Point};
 use geojson::{Feature, Geometry};
@@ -13,10 +12,11 @@ use rstar::{primitives::GeomWithData, RTree};
 use serde::{Deserialize, Serialize};
 
 /// Call with `os_nodes.fgb tsigs.geojson`. It'll match traffic signals to OS nodes, write
-/// `tsig_os_nodes.fgb` and `extra_tsigs.geojson`.
+/// `tsig_os_nodes.geojson` and `extra_tsigs.geojson`.
 fn main() -> Result<()> {
     let args: Vec<String> = std::env::args().collect();
-    let dist_threshold = 10.0;
+    // TODO Quite high, but the OS nodes are very simplified
+    let dist_threshold = 30.0;
 
     let mut nodes = read_nodes(&args[1])?;
     println!("Got {} nodes", nodes.size());
@@ -44,16 +44,18 @@ fn main() -> Result<()> {
     println!("Writing extra_tsigs.geojson");
     write_tsigs("extra_tsigs.geojson", leftover_tsigs)?;
 
-    println!("Writing tsig_os_nodes.fgb");
-    let mut fgb = FgbWriter::create("nodes", GeometryType::Point)?;
+    println!("Writing tsig_os_nodes.geojson");
+    let mut outs = Vec::new();
     for node in nodes.drain() {
         let mut f = Feature::from(Geometry::from(node.geom()));
         f.set_property("traffic_signals", nodes_with_tsig.contains(&node.data));
         f.set_property("id", node.data);
-        fgb.add_feature(geozero::geojson::GeoJson(&serde_json::to_string(&f)?))?;
+        outs.push(f);
     }
-    let mut out = BufWriter::new(File::create("tsig_os_nodes.fgb")?);
-    fgb.write(&mut out)?;
+    std::fs::write(
+        "tsig_os_nodes.geojson",
+        serde_json::to_string(&geojson::GeoJson::from(outs))?,
+    )?;
 
     Ok(())
 }
