@@ -6,6 +6,7 @@
   import { GeoJSON, LineLayer, MapEvents, Marker } from "svelte-maplibre";
   import { emptyGeojson } from "svelte-utils/map";
   import { SplitComponent } from "svelte-utils/two_column_layout";
+  import DebugNetwork from "./DebugNetwork.svelte";
   import { routeTool, waypoints, type Waypoint } from "./stores";
 
   export let map: Map;
@@ -18,6 +19,8 @@
     $routeTool?.stop();
     map.getCanvas().style.cursor = "inherit";
   });
+
+  let showDebug = true;
 
   let drawMode: "append-start" | "append-end" | "adjust" = editingExisting
     ? "adjust"
@@ -305,10 +308,17 @@
         )
       </label>
     </fieldset>
+
+    <label>
+      <input type="checkbox" bind:checked={showDebug} />
+      Debug the network
+    </label>
   </div>
 
   <div slot="map">
     <MapEvents on:click={onMapClick} on:mousemove={onMouseMove} />
+
+    <DebugNetwork {showDebug} />
 
     {#each extraNodes as node}
       <Marker

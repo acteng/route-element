@@ -21,6 +21,9 @@ pub struct OsGraph {
     links_per_node: HashMap<NodeID, Vec<EdgeID>>,
     // TODO Might break with multi-graphs
     node_pair_to_edge: HashMap<(NodeID, NodeID), EdgeID>,
+
+    all_links: Vec<os::Link>,
+    all_nodes: Vec<os::Node>,
 }
 static LAST_GRAPH: LazyLock<Mutex<Option<OsGraph>>> = LazyLock::new(|| Mutex::new(None));
 
@@ -68,6 +71,20 @@ pub async fn make_route_snapper(
     let result = bincode::serialize(&os_graph.graph).map_err(err_to_js);
     *LAST_GRAPH.lock().unwrap() = Some(os_graph);
     result
+}
+
+/// After makeRouteSnapper, this will debug the nodes and links used for snapping
+#[wasm_bindgen(js_name = debugNetwork)]
+pub fn debug_network() -> Result<String, JsValue> {
+    if let Some(graph) = LAST_GRAPH.lock().unwrap().as_ref() {
+        Ok(serde_json::json!({
+            "os_nodes": geojson::ser::to_feature_collection_string(&graph.all_nodes).unwrap(),
+            "os_links": geojson::ser::to_feature_collection_string(&graph.all_links).unwrap(),
+        })
+        .to_string())
+    } else {
+        Err(JsValue::from_str("have to call makeRouteSnapper first"))
+    }
 }
 
 /// Takes a list of Nodes from the route snapper and returns a FeatureCollection of LineStrings

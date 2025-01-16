@@ -30,6 +30,7 @@ pub struct Node {
     #[serde(serialize_with = "geojson::ser::serialize_geometry")]
     geometry: Point,
     id: String,
+    traffic_signals: bool,
 }
 
 pub fn bbox_for_os(line: &LineString) -> Rect {
@@ -85,6 +86,7 @@ pub fn read_node(f: &FgbFeature) -> Result<Node> {
     Ok(Node {
         geometry: fgb::get_point(f)?,
         id: f.property("id")?,
+        traffic_signals: f.property("traffic_signals")?,
     })
 }
 
@@ -260,15 +262,15 @@ pub async fn make_route_snapper(base_url: &str, bbox: Rect) -> Result<OsGraph> {
     // Convert to RouteSnapperMap
     let mut node_lookup: HashMap<String, NodeID> = HashMap::new();
     let mut nodes: Vec<Coord> = Vec::new();
-    for node in os_nodes {
-        node_lookup.insert(node.id, NodeID(nodes.len() as u32));
+    for node in &os_nodes {
+        node_lookup.insert(node.id.clone(), NodeID(nodes.len() as u32));
         nodes.push(node.geometry.into());
     }
     let mut links_per_node: HashMap<NodeID, Vec<EdgeID>> = HashMap::new();
     let mut node_pair_to_edge: HashMap<(NodeID, NodeID), EdgeID> = HashMap::new();
 
     let mut edges = Vec::new();
-    for link in os_links {
+    for link in &os_links {
         // Skip links crossing the bbox
         if let (Some(node1), Some(node2)) = (
             node_lookup.get(&link.start_node).cloned(),
@@ -289,7 +291,7 @@ pub async fn make_route_snapper(base_url: &str, bbox: Rect) -> Result<OsGraph> {
             edges.push(Edge {
                 node1,
                 node2,
-                geometry: link.geometry,
+                geometry: link.geometry.clone(),
                 name: None,
 
                 // Isn't serialized, doesn't matter
@@ -309,6 +311,9 @@ pub async fn make_route_snapper(base_url: &str, bbox: Rect) -> Result<OsGraph> {
             override_forward_costs: Vec::new(),
             override_backward_costs: Vec::new(),
         },
+
+        all_nodes: os_nodes,
+        all_links: os_links,
     })
 }
 
