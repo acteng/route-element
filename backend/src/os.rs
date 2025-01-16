@@ -13,7 +13,19 @@ use route_snapper_graph::{Edge, EdgeID, NodeID, RouteSnapperMap};
 use rstar::{primitives::GeomWithData, RTree};
 use serde::Serialize;
 
-use crate::{fgb, OsGraph, RouteNode};
+use crate::{fgb, RouteNode};
+
+// TODO Change WASM API to construct one of these and call methods on it
+pub struct OsGraph {
+    pub graph: RouteSnapperMap,
+    links_per_node: HashMap<NodeID, Vec<EdgeID>>,
+    // TODO Might break with multi-graphs
+    node_pair_to_edge: HashMap<(NodeID, NodeID), EdgeID>,
+
+    signalized_junctions: HashSet<NodeID>,
+    pub all_links: Vec<Link>,
+    pub all_nodes: Vec<Node>,
+}
 
 #[derive(Clone, Serialize)]
 pub struct Link {
@@ -262,9 +274,14 @@ pub async fn make_route_snapper(base_url: &str, bbox: Rect) -> Result<OsGraph> {
     // Convert to RouteSnapperMap
     let mut node_lookup: HashMap<String, NodeID> = HashMap::new();
     let mut nodes: Vec<Coord> = Vec::new();
+    let mut signalized_junctions = HashSet::new();
     for node in &os_nodes {
-        node_lookup.insert(node.id.clone(), NodeID(nodes.len() as u32));
+        let id = NodeID(nodes.len() as u32);
+        node_lookup.insert(node.id.clone(), id);
         nodes.push(node.geometry.into());
+        if node.traffic_signals {
+            signalized_junctions.insert(id);
+        }
     }
     let mut links_per_node: HashMap<NodeID, Vec<EdgeID>> = HashMap::new();
     let mut node_pair_to_edge: HashMap<(NodeID, NodeID), EdgeID> = HashMap::new();
@@ -312,6 +329,7 @@ pub async fn make_route_snapper(base_url: &str, bbox: Rect) -> Result<OsGraph> {
             override_backward_costs: Vec::new(),
         },
 
+        signalized_junctions,
         all_nodes: os_nodes,
         all_links: os_links,
     })
@@ -351,5 +369,19 @@ pub fn get_side_roads(graph: &OsGraph, full_path: Vec<RouteNode>) -> GeoJson {
         }
     }
 
+    GeoJson::from(features)
+}
+
+pub fn get_signalized_junctions(graph: &OsGraph, full_path: Vec<RouteNode>) -> GeoJson {
+    let mut features = Vec::new();
+    for node in full_path {
+        if let Some(x) = node.snapped {
+            if graph.signalized_junctions.contains(&NodeID(x)) {
+                features.push(Feature::from(Geometry::from(&Point::from(
+                    graph.graph.nodes[x as usize],
+                ))));
+            }
+        }
+    }
     GeoJson::from(features)
 }

@@ -1,10 +1,15 @@
-import init, { getSideRoads, makeRouteSnapper } from "backend";
+import init, {
+  getSideRoads,
+  getSignalizedJunctions,
+  makeRouteSnapper,
+} from "backend";
 import type { Map } from "maplibre-gl";
 import { init as init2, RouteTool } from "route-snapper-ts";
 import { emptyGeojson } from "svelte-utils/map";
 import { get, writable, type Writable } from "svelte/store";
-import { colors } from "../common";
+import { blankJAT } from "../jat/types";
 import { blankLink } from "../links/types";
+import { blankSideRoad } from "../side_roads/types";
 import { mode, state } from "../state";
 
 export interface Waypoint {
@@ -61,7 +66,7 @@ export function finishRoute() {
       return;
     }
 
-    addSideRoads(feature.properties.full_path);
+    addExtras(feature.properties.full_path);
 
     // TODO Make multiple links when freehand sections appear
 
@@ -85,17 +90,17 @@ export function finishRoute() {
 
 type Node = { snapped: number } | { free: [number, number] };
 
-function addSideRoads(nodes: Node[]) {
+function addExtras(nodes: Node[]) {
   state.update((x) => {
     for (let f of JSON.parse(getSideRoads(nodes)).features) {
-      // Mimic blankSideRoad
-      f.properties = {
-        name: "Untitled side road",
-        sa01: "",
-        color: colors[x.side_roads.length % colors.length],
-      };
+      f.properties = blankSideRoad(x.side_roads.length).properties;
       x.side_roads.push(f);
     }
+
+    for (let f of JSON.parse(getSignalizedJunctions(nodes)).features) {
+      x.jats.push(blankJAT(x.jats.length, f.geometry.coordinates));
+    }
+
     return x;
   });
 }

@@ -1,11 +1,9 @@
-use std::collections::HashMap;
 use std::sync::{LazyLock, Mutex, Once};
 
 use anyhow::{Context, Result};
 use flatgeobuf::{FeatureProperties, FgbFeature};
 use geo::{BoundingRect, Coord, Haversine, Intersects, Length, LineString, MultiPolygon, Rect};
 use geojson::Feature;
-use route_snapper_graph::{EdgeID, NodeID, RouteSnapperMap};
 use serde::{Deserialize, Serialize};
 
 use wasm_bindgen::prelude::*;
@@ -15,17 +13,8 @@ pub mod os;
 
 static START: Once = Once::new();
 
-// Messily just store global state between makeRouteSnapper and getSideRoads
-pub struct OsGraph {
-    graph: RouteSnapperMap,
-    links_per_node: HashMap<NodeID, Vec<EdgeID>>,
-    // TODO Might break with multi-graphs
-    node_pair_to_edge: HashMap<(NodeID, NodeID), EdgeID>,
-
-    all_links: Vec<os::Link>,
-    all_nodes: Vec<os::Node>,
-}
-static LAST_GRAPH: LazyLock<Mutex<Option<OsGraph>>> = LazyLock::new(|| Mutex::new(None));
+// Messily just store global state between makeRouteSnapper and other calls
+static LAST_GRAPH: LazyLock<Mutex<Option<os::OsGraph>>> = LazyLock::new(|| Mutex::new(None));
 
 /// Takes a GeoJSON `Feature<LineString>` and returns a JSON object with some info
 #[wasm_bindgen(js_name = evalRoute)]
@@ -94,6 +83,18 @@ pub fn get_side_roads(input: JsValue) -> Result<String, JsValue> {
     if let Some(graph) = LAST_GRAPH.lock().unwrap().as_ref() {
         let full_path: Vec<RouteNode> = serde_wasm_bindgen::from_value(input)?;
         serde_json::to_string(&os::get_side_roads(graph, full_path)).map_err(err_to_js)
+    } else {
+        Err(JsValue::from_str("have to call makeRouteSnapper first"))
+    }
+}
+
+/// Takes a list of Nodes from the route snapper and returns a FeatureCollection of Points
+/// for traffic signals along the route.
+#[wasm_bindgen(js_name = getSignalizedJunctions)]
+pub fn get_signalized_junctions(input: JsValue) -> Result<String, JsValue> {
+    if let Some(graph) = LAST_GRAPH.lock().unwrap().as_ref() {
+        let full_path: Vec<RouteNode> = serde_wasm_bindgen::from_value(input)?;
+        serde_json::to_string(&os::get_signalized_junctions(graph, full_path)).map_err(err_to_js)
     } else {
         Err(JsValue::from_str("have to call makeRouteSnapper first"))
     }
