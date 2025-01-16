@@ -24,6 +24,8 @@ ogr2ogr os_nodes.fgb oproad_gb.gpkg -t_srs EPSG:4326 -sql 'SELECT id, geometry F
 OS appears to have no dataset indicating signalized juntions.
 
 ```
+cd data_prep
 osmium tags-filter ~/Downloads/england-latest.osm.pbf n/highway=traffic_signals -o tsigs.osm.pbf
 osmium export tsigs.osm.pbf -o tsigs.geojson
+cargo run --release -- /home/dabreegster/cloudflare_sync/route-element/os_nodes.fgb tsigs.geojson
 ```

@@ -1,25 +1,59 @@
+use std::collections::HashSet;
 use std::fs::File;
-use std::io::BufReader;
+use std::io::{BufReader, BufWriter};
 
 use anyhow::{bail, Result};
 use flatgeobuf::{
     FallibleStreamingIterator, FeatureProperties, FgbFeature, FgbReader, FgbWriter, GeometryType,
     GeozeroGeometry,
 };
-use geo::Point;
+use geo::{Distance, Haversine, Point};
+use geojson::{Feature, Geometry};
 use rstar::{primitives::GeomWithData, RTree};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 /// Call with `os_nodes.fgb tsigs.geojson`. It'll match traffic signals to OS nodes, write
 /// `tsig_os_nodes.fgb` and `extra_tsigs.geojson`.
 fn main() -> Result<()> {
     let args: Vec<String> = std::env::args().collect();
+    let dist_threshold = 10.0;
 
-    let nodes = read_nodes(&args[1])?;
+    let mut nodes = read_nodes(&args[1])?;
     println!("Got {} nodes", nodes.size());
 
     let tsigs = read_tsigs(&args[2])?;
-    println!("Got {} tsigs", tsigs.len());
+    println!("Got {} tsigs. Matching", tsigs.len());
+
+    // TODO Doing the matching in WGS84 riskily
+    let mut nodes_with_tsig = HashSet::new();
+    let mut leftover_tsigs = Vec::new();
+    for tsig in tsigs {
+        // Assume there are more OSM tsigs than OS nodes. Never match one tsig to multiple OS
+        // nodes.
+        if let Some(node) = nodes.nearest_neighbor(&tsig) {
+            let dist = Haversine::distance(tsig, *node.geom());
+            if dist < dist_threshold {
+                nodes_with_tsig.insert(node.data.clone());
+                continue;
+            }
+        }
+
+        leftover_tsigs.push(tsig);
+    }
+
+    println!("Writing extra_tsigs.geojson");
+    write_tsigs("extra_tsigs.geojson", leftover_tsigs)?;
+
+    println!("Writing tsig_os_nodes.fgb");
+    let mut fgb = FgbWriter::create("nodes", GeometryType::Point)?;
+    for node in nodes.drain() {
+        let mut f = Feature::from(Geometry::from(node.geom()));
+        f.set_property("traffic_signals", nodes_with_tsig.contains(&node.data));
+        f.set_property("id", node.data);
+        fgb.add_feature(geozero::geojson::GeoJson(&serde_json::to_string(&f)?))?;
+    }
+    let mut out = BufWriter::new(File::create("tsig_os_nodes.fgb")?);
+    fgb.write(&mut out)?;
 
     Ok(())
 }
@@ -36,14 +70,28 @@ fn read_tsigs(path: &str) -> Result<Vec<Point>> {
     )
 }
 
-#[derive(Deserialize)]
+fn write_tsigs(path: &str, tsigs: Vec<Point>) -> Result<()> {
+    let f = File::create(path)?;
+    let features = tsigs
+        .into_iter()
+        .map(|pt| PointGJ { geometry: pt })
+        .collect::<Vec<_>>();
+    geojson::ser::to_feature_collection_writer(f, &features)?;
+    Ok(())
+}
+
+#[derive(Serialize, Deserialize)]
 struct PointGJ {
-    #[serde(deserialize_with = "geojson::de::deserialize_geometry")]
+    #[serde(
+        deserialize_with = "geojson::de::deserialize_geometry",
+        serialize_with = "geojson::ser::serialize_geometry"
+    )]
     geometry: Point,
 }
 
 /////
 
+// TODO Use backend's fgb helpers?
 fn read_nodes(path: &str) -> Result<RTree<GeomWithData<Point, String>>> {
     let mut nodes = Vec::new();
     let mut fgb = FgbReader::open(BufReader::new(File::open(path)?))?.select_all()?;

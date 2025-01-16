@@ -97,10 +97,11 @@ dependencies = [
  "anyhow",
  "flatgeobuf",
  "geo",
- "geojson",
+ "geojson 0.24.1 (git+https://github.com/georust/geojson)",
  "geozero",
  "rstar",
  "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -224,6 +225,18 @@ dependencies = [
 [[package]]
 name = "geojson"
 version = "0.24.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a5d728c1df1fbf328d74151efe6cb0586f79ee813346ea981add69bd22c9241b"
+dependencies = [
+ "log",
+ "serde",
+ "serde_json",
+ "thiserror 1.0.69",
+]
+
+[[package]]
+name = "geojson"
+version = "0.24.1"
 source = "git+https://github.com/georust/geojson#5532d2d05dea0767d0e856a4ca9293bebff4f1b7"
 dependencies = [
  "geo-types",
@@ -240,6 +253,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e5f28f34864745eb2f123c990c6ffd92c1584bd39439b3f27ff2a0f4ea5b309b"
 dependencies = [
  "geo-types",
+ "geojson 0.24.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "log",
  "serde_json",
  "thiserror 1.0.69",
