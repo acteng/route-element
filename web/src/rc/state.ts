@@ -1,3 +1,4 @@
+import { OsGraph } from "backend";
 import type { Feature, FeatureCollection } from "geojson";
 import type { Map } from "maplibre-gl";
 import { writable, type Writable } from "svelte/store";
@@ -37,7 +38,7 @@ type Mode =
   | { kind: "edit-crossing"; idx: number }
   | { kind: "edit-side-road"; idx: number }
   | { kind: "side-road-questions" }
-  | { kind: "draw-route" };
+  | { kind: "draw-route"; graph: OsGraph };
 export let mode: Writable<Mode> = writable({ kind: "neutral" });
 
 export function checkState(x: any): boolean {

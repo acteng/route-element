@@ -1,9 +1,4 @@
-import init, {
-  getSideRoads,
-  getSignalizedJunctions,
-  makeRouteSnapper,
-  splitLinks,
-} from "backend";
+import init, { OsGraph } from "backend";
 import type { Map } from "maplibre-gl";
 import { init as init2, RouteTool } from "route-snapper-ts";
 import { emptyGeojson } from "svelte-utils/map";
@@ -32,7 +27,7 @@ export async function setupRouteTool(map: Map) {
 
   let b = map.getBounds();
   try {
-    let buffer = await makeRouteSnapper(
+    let graph = await new OsGraph(
       baseURL,
       b.getEast(),
       b.getNorth(),
@@ -44,19 +39,19 @@ export async function setupRouteTool(map: Map) {
     routeTool.set(
       new RouteTool(
         map,
-        buffer,
+        graph.getRouteSnapper(),
         writable(emptyGeojson()),
         writable(true),
         writable(0),
       ),
     );
-    mode.set({ kind: "draw-route" });
+    mode.set({ kind: "draw-route", graph });
   } catch (err) {
     window.alert(err);
   }
 }
 
-export function finishRoute() {
+export function finishRoute(graph: OsGraph) {
   try {
     let feature = JSON.parse(
       get(routeTool)!.inner.calculateRoute(get(waypoints)),
@@ -69,7 +64,7 @@ export function finishRoute() {
 
     state.update((x) => {
       for (let split of JSON.parse(
-        splitLinks(feature, feature.properties.full_path),
+        graph.splitLinks(feature, feature.properties.full_path),
       ).features) {
         let f = blankLink(x.links.length);
         f.geometry = split.geometry;
@@ -79,14 +74,14 @@ export function finishRoute() {
         x.links.push(f);
       }
 
-      for (let f of JSON.parse(getSideRoads(feature.properties.full_path))
+      for (let f of JSON.parse(graph.getSideRoads(feature.properties.full_path))
         .features) {
         f.properties = blankSideRoad(x.side_roads.length).properties;
         x.side_roads.push(f);
       }
 
       for (let f of JSON.parse(
-        getSignalizedJunctions(feature.properties.full_path),
+        graph.getSignalizedJunctions(feature.properties.full_path),
       ).features) {
         x.jats.push(blankJAT(x.jats.length, f.geometry.coordinates));
       }

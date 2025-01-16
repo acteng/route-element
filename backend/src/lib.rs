@@ -1,4 +1,4 @@
-use std::sync::{LazyLock, Mutex, Once};
+use std::sync::Once;
 
 use anyhow::{Context, Result};
 use flatgeobuf::{FeatureProperties, FgbFeature};
@@ -8,13 +8,12 @@ use serde::{Deserialize, Serialize};
 
 use wasm_bindgen::prelude::*;
 
+use self::os::OsGraph;
+
 pub mod fgb;
 pub mod os;
 
 static START: Once = Once::new();
-
-// Messily just store global state between makeRouteSnapper and other calls
-static LAST_GRAPH: LazyLock<Mutex<Option<os::OsGraph>>> = LazyLock::new(|| Mutex::new(None));
 
 /// Takes a GeoJSON `Feature<LineString>` and returns a JSON object with some info
 #[wasm_bindgen(js_name = evalRoute)]
@@ -42,78 +41,61 @@ pub async fn eval_route(input: JsValue, base_url: String) -> Result<String, JsVa
     .to_string())
 }
 
-/// Returns a bincoded route snapper graph covering a bbox
-#[wasm_bindgen(js_name = makeRouteSnapper)]
-pub async fn make_route_snapper(
-    base_url: String,
-    x1: f64,
-    y1: f64,
-    x2: f64,
-    y2: f64,
-) -> Result<Vec<u8>, JsValue> {
-    setup();
+#[wasm_bindgen]
+impl OsGraph {
+    #[wasm_bindgen(constructor)]
+    pub async fn new(
+        base_url: String,
+        x1: f64,
+        y1: f64,
+        x2: f64,
+        y2: f64,
+    ) -> Result<OsGraph, JsValue> {
+        setup();
 
-    let bbox = Rect::new(Coord { x: x1, y: y1 }, Coord { x: x2, y: y2 });
-    let os_graph = os::make_route_snapper(&base_url, bbox)
-        .await
-        .map_err(err_to_js)?;
-    let result = bincode::serialize(&os_graph.graph).map_err(err_to_js);
-    *LAST_GRAPH.lock().unwrap() = Some(os_graph);
-    result
-}
-
-/// After makeRouteSnapper, this will debug the nodes and links used for snapping
-#[wasm_bindgen(js_name = debugNetwork)]
-pub fn debug_network() -> Result<String, JsValue> {
-    if let Some(graph) = LAST_GRAPH.lock().unwrap().as_ref() {
-        Ok(serde_json::json!({
-            "os_nodes": geojson::ser::to_feature_collection_string(&graph.all_nodes).unwrap(),
-            "os_links": geojson::ser::to_feature_collection_string(&graph.all_links).unwrap(),
-        })
-        .to_string())
-    } else {
-        Err(JsValue::from_str("have to call makeRouteSnapper first"))
+        let bbox = Rect::new(Coord { x: x1, y: y1 }, Coord { x: x2, y: y2 });
+        Ok(OsGraph::create(&base_url, bbox).await.map_err(err_to_js)?)
     }
-}
 
-// TODO Combine these calls
-/// Takes a Feature<LineString> and list of Nodes from the route snapper and returns a
-/// FeatureCollection of LineStrings representing links, with splits inserted between signalized
-/// junctions.
-#[wasm_bindgen(js_name = splitLinks)]
-pub fn split_links(input1: JsValue, input2: JsValue) -> Result<String, JsValue> {
-    if let Some(graph) = LAST_GRAPH.lock().unwrap().as_ref() {
+    /// Returns a bincoded route snapper graph
+    #[wasm_bindgen(js_name = getRouteSnapper)]
+    pub fn get_route_snapper_wasm(&self) -> Result<Vec<u8>, JsValue> {
+        self.get_route_snapper().map_err(err_to_js)
+    }
+
+    /// Debug the nodes and links used for snapping
+    #[wasm_bindgen(js_name = debugNetwork)]
+    pub fn debug_network_wasm(&self) -> String {
+        self.debug_network().to_string()
+    }
+
+    // TODO Combine these calls
+    /// Takes a Feature<LineString> and list of Nodes from the route snapper and returns a
+    /// FeatureCollection of LineStrings representing links, with splits inserted between signalized
+    /// junctions.
+    #[wasm_bindgen(js_name = splitLinks)]
+    pub fn split_links_wasm(&self, input1: JsValue, input2: JsValue) -> Result<String, JsValue> {
         let f: Feature = serde_wasm_bindgen::from_value(input1)?;
         let line: LineString = f.try_into().map_err(err_to_js)?;
 
         let full_path: Vec<RouteNode> = serde_wasm_bindgen::from_value(input2)?;
-        serde_json::to_string(&os::split_links(graph, line, full_path)).map_err(err_to_js)
-    } else {
-        Err(JsValue::from_str("have to call makeRouteSnapper first"))
+        serde_json::to_string(&self.split_links(line, full_path)).map_err(err_to_js)
     }
-}
 
-/// Takes a list of Nodes from the route snapper and returns a FeatureCollection of LineStrings
-/// representing side roads crossed by the path
-#[wasm_bindgen(js_name = getSideRoads)]
-pub fn get_side_roads(input: JsValue) -> Result<String, JsValue> {
-    if let Some(graph) = LAST_GRAPH.lock().unwrap().as_ref() {
+    /// Takes a list of Nodes from the route snapper and returns a FeatureCollection of LineStrings
+    /// representing side roads crossed by the path
+    #[wasm_bindgen(js_name = getSideRoads)]
+    pub fn get_side_roads_wasm(&self, input: JsValue) -> Result<String, JsValue> {
         let full_path: Vec<RouteNode> = serde_wasm_bindgen::from_value(input)?;
-        serde_json::to_string(&os::get_side_roads(graph, full_path)).map_err(err_to_js)
-    } else {
-        Err(JsValue::from_str("have to call makeRouteSnapper first"))
+        serde_json::to_string(&self.get_side_roads(full_path)).map_err(err_to_js)
     }
-}
 
-/// Takes a list of Nodes from the route snapper and returns a FeatureCollection of Points
-/// for traffic signals along the route.
-#[wasm_bindgen(js_name = getSignalizedJunctions)]
-pub fn get_signalized_junctions(input: JsValue) -> Result<String, JsValue> {
-    if let Some(graph) = LAST_GRAPH.lock().unwrap().as_ref() {
+    /// Takes a list of Nodes from the route snapper and returns a FeatureCollection of Points
+    /// for traffic signals along the route.
+    #[wasm_bindgen(js_name = getSignalizedJunctions)]
+    pub fn get_signalized_junctions_wasm(&self, input: JsValue) -> Result<String, JsValue> {
         let full_path: Vec<RouteNode> = serde_wasm_bindgen::from_value(input)?;
-        serde_json::to_string(&os::get_signalized_junctions(graph, full_path)).map_err(err_to_js)
-    } else {
-        Err(JsValue::from_str("have to call makeRouteSnapper first"))
+        serde_json::to_string(&self.get_signalized_junctions(full_path)).map_err(err_to_js)
     }
 }
 

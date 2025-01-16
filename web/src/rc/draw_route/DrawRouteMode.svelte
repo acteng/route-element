@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { OsGraph } from "backend";
   import type { FeatureCollection } from "geojson";
   import type { Map, MapMouseEvent } from "maplibre-gl";
   import { RouteTool } from "route-snapper-ts";
@@ -9,6 +10,7 @@
   import DebugNetwork from "./DebugNetwork.svelte";
   import { routeTool, waypoints, type Waypoint } from "./stores";
 
+  export let graph: OsGraph;
   export let map: Map;
   export let finish: () => void;
   export let cancel: () => void;
@@ -318,7 +320,7 @@
   <div slot="map">
     <MapEvents on:click={onMapClick} on:mousemove={onMouseMove} />
 
-    <DebugNetwork {showDebug} />
+    <DebugNetwork {showDebug} {graph} />
 
     {#each extraNodes as node}
       <Marker

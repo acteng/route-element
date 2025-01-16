@@ -13,21 +13,23 @@ use route_snapper_graph::{Edge, EdgeID, NodeID, RouteSnapperMap};
 use rstar::{primitives::GeomWithData, RTree};
 use serde::Serialize;
 use utils::LineSplit;
+use wasm_bindgen::prelude::*;
 
 use crate::{fgb, RouteNode};
 
-// TODO Change WASM API to construct one of these and call methods on it
+#[wasm_bindgen]
 pub struct OsGraph {
-    pub graph: RouteSnapperMap,
+    graph: RouteSnapperMap,
     links_per_node: HashMap<NodeID, Vec<EdgeID>>,
     // TODO Might break with multi-graphs
     node_pair_to_edge: HashMap<(NodeID, NodeID), EdgeID>,
 
     signalized_junctions: HashSet<NodeID>,
-    pub all_links: Vec<Link>,
-    pub all_nodes: Vec<Node>,
+    all_links: Vec<Link>,
+    all_nodes: Vec<Node>,
 }
 
+#[wasm_bindgen]
 #[derive(Clone, Serialize)]
 pub struct Link {
     #[serde(serialize_with = "geojson::ser::serialize_geometry")]
@@ -38,6 +40,7 @@ pub struct Link {
     end_node: String,
 }
 
+#[wasm_bindgen]
 #[derive(Clone, Serialize)]
 pub struct Node {
     #[serde(serialize_with = "geojson::ser::serialize_geometry")]
@@ -254,165 +257,178 @@ fn dijkstra(
     Some((path_nodes, path_links))
 }
 
-pub async fn make_route_snapper(base_url: &str, bbox: Rect) -> Result<OsGraph> {
-    // Before downloading, sanity check the bbox size
-    let dist = Haversine::distance(bbox.min().into(), bbox.max().into());
-    if dist > 25_000.0 {
-        bail!(
+impl OsGraph {
+    pub async fn create(base_url: &str, bbox: Rect) -> Result<OsGraph> {
+        // Before downloading, sanity check the bbox size
+        let dist = Haversine::distance(bbox.min().into(), bbox.max().into());
+        if dist > 25_000.0 {
+            bail!(
             "Zoom in more to draw a route. The map currently covers a diagonal distance of {dist}m"
         );
-    }
-
-    let url1 = format!("{base_url}/os_nodes.fgb");
-    let url2 = format!("{base_url}/os_links.fgb");
-    let os_nodes = fgb::read_fgb(bbox, &url1, read_node)
-        .await
-        .context("nodes")?;
-    let os_links = fgb::read_fgb(bbox, &url2, read_link)
-        .await
-        .context("links")?;
-
-    // Convert to RouteSnapperMap
-    let mut node_lookup: HashMap<String, NodeID> = HashMap::new();
-    let mut nodes: Vec<Coord> = Vec::new();
-    let mut signalized_junctions = HashSet::new();
-    for node in &os_nodes {
-        let id = NodeID(nodes.len() as u32);
-        node_lookup.insert(node.id.clone(), id);
-        nodes.push(node.geometry.into());
-        if node.traffic_signals {
-            signalized_junctions.insert(id);
         }
-    }
-    let mut links_per_node: HashMap<NodeID, Vec<EdgeID>> = HashMap::new();
-    let mut node_pair_to_edge: HashMap<(NodeID, NodeID), EdgeID> = HashMap::new();
 
-    let mut edges = Vec::new();
-    for link in &os_links {
-        // Skip links crossing the bbox
-        if let (Some(node1), Some(node2)) = (
-            node_lookup.get(&link.start_node).cloned(),
-            node_lookup.get(&link.end_node).cloned(),
-        ) {
-            let edge_id = EdgeID(edges.len() as u32);
-            links_per_node
-                .entry(node1)
-                .or_insert_with(Vec::new)
-                .push(edge_id);
-            links_per_node
-                .entry(node2)
-                .or_insert_with(Vec::new)
-                .push(edge_id);
-            node_pair_to_edge.insert((node1, node2), edge_id);
-            node_pair_to_edge.insert((node2, node1), edge_id);
+        let url1 = format!("{base_url}/os_nodes.fgb");
+        let url2 = format!("{base_url}/os_links.fgb");
+        let os_nodes = fgb::read_fgb(bbox, &url1, read_node)
+            .await
+            .context("nodes")?;
+        let os_links = fgb::read_fgb(bbox, &url2, read_link)
+            .await
+            .context("links")?;
 
-            edges.push(Edge {
-                node1,
-                node2,
-                geometry: link.geometry.clone(),
-                name: None,
-
-                // Isn't serialized, doesn't matter
-                length_meters: 0.0,
-                forward_cost: None,
-                backward_cost: None,
-            });
+        // Convert to RouteSnapperMap
+        let mut node_lookup: HashMap<String, NodeID> = HashMap::new();
+        let mut nodes: Vec<Coord> = Vec::new();
+        let mut signalized_junctions = HashSet::new();
+        for node in &os_nodes {
+            let id = NodeID(nodes.len() as u32);
+            node_lookup.insert(node.id.clone(), id);
+            nodes.push(node.geometry.into());
+            if node.traffic_signals {
+                signalized_junctions.insert(id);
+            }
         }
-    }
+        let mut links_per_node: HashMap<NodeID, Vec<EdgeID>> = HashMap::new();
+        let mut node_pair_to_edge: HashMap<(NodeID, NodeID), EdgeID> = HashMap::new();
 
-    Ok(OsGraph {
-        links_per_node,
-        node_pair_to_edge,
-        graph: RouteSnapperMap {
-            nodes,
-            edges,
-            override_forward_costs: Vec::new(),
-            override_backward_costs: Vec::new(),
-        },
+        let mut edges = Vec::new();
+        for link in &os_links {
+            // Skip links crossing the bbox
+            if let (Some(node1), Some(node2)) = (
+                node_lookup.get(&link.start_node).cloned(),
+                node_lookup.get(&link.end_node).cloned(),
+            ) {
+                let edge_id = EdgeID(edges.len() as u32);
+                links_per_node
+                    .entry(node1)
+                    .or_insert_with(Vec::new)
+                    .push(edge_id);
+                links_per_node
+                    .entry(node2)
+                    .or_insert_with(Vec::new)
+                    .push(edge_id);
+                node_pair_to_edge.insert((node1, node2), edge_id);
+                node_pair_to_edge.insert((node2, node1), edge_id);
 
-        signalized_junctions,
-        all_nodes: os_nodes,
-        all_links: os_links,
-    })
-}
+                edges.push(Edge {
+                    node1,
+                    node2,
+                    geometry: link.geometry.clone(),
+                    name: None,
 
-pub fn get_side_roads(graph: &OsGraph, full_path: Vec<RouteNode>) -> GeoJson {
-    let mut batches: Vec<Vec<NodeID>> = Vec::new();
-    for batch in full_path.chunk_by(|a, b| a.snapped.is_some() == b.snapped.is_some()) {
-        // Ignore freehand segments
-        if batch[0].snapped.is_some() {
-            batches.push(
-                batch
-                    .into_iter()
-                    .map(|n| NodeID(n.snapped.unwrap()))
-                    .collect(),
-            );
+                    // Isn't serialized, doesn't matter
+                    length_meters: 0.0,
+                    forward_cost: None,
+                    backward_cost: None,
+                });
+            }
         }
+
+        Ok(OsGraph {
+            links_per_node,
+            node_pair_to_edge,
+            graph: RouteSnapperMap {
+                nodes,
+                edges,
+                override_forward_costs: Vec::new(),
+                override_backward_costs: Vec::new(),
+            },
+
+            signalized_junctions,
+            all_nodes: os_nodes,
+            all_links: os_links,
+        })
     }
 
-    // TODO This'll usually have an error at the beginning and end, extending the route itself.
-    // Hard to distinguish.
-    let mut features = Vec::new();
-    for batch in batches {
-        let edges_in_this_batch: HashSet<EdgeID> = batch
-            .windows(2)
-            .map(|pair| graph.node_pair_to_edge[&(pair[0], pair[1])])
-            .collect();
+    pub fn get_route_snapper(&self) -> Result<Vec<u8>> {
+        Ok(bincode::serialize(&self.graph)?)
+    }
 
-        for node in batch {
-            for edge in &graph.links_per_node[&node] {
-                if !edges_in_this_batch.contains(edge) {
-                    features.push(Feature::from(Geometry::from(
-                        &graph.graph.edges[edge.0 as usize].geometry,
-                    )));
+    pub fn debug_network(&self) -> serde_json::Value {
+        serde_json::json!({
+            "os_nodes": geojson::ser::to_feature_collection_string(&self.all_nodes).unwrap(),
+            "os_links": geojson::ser::to_feature_collection_string(&self.all_links).unwrap(),
+        })
+    }
+
+    pub fn get_side_roads(&self, full_path: Vec<RouteNode>) -> GeoJson {
+        let mut batches: Vec<Vec<NodeID>> = Vec::new();
+        for batch in full_path.chunk_by(|a, b| a.snapped.is_some() == b.snapped.is_some()) {
+            // Ignore freehand segments
+            if batch[0].snapped.is_some() {
+                batches.push(
+                    batch
+                        .into_iter()
+                        .map(|n| NodeID(n.snapped.unwrap()))
+                        .collect(),
+                );
+            }
+        }
+
+        // TODO This'll usually have an error at the beginning and end, extending the route itself.
+        // Hard to distinguish.
+        let mut features = Vec::new();
+        for batch in batches {
+            let edges_in_this_batch: HashSet<EdgeID> = batch
+                .windows(2)
+                .map(|pair| self.node_pair_to_edge[&(pair[0], pair[1])])
+                .collect();
+
+            for node in batch {
+                for edge in &self.links_per_node[&node] {
+                    if !edges_in_this_batch.contains(edge) {
+                        features.push(Feature::from(Geometry::from(
+                            &self.graph.edges[edge.0 as usize].geometry,
+                        )));
+                    }
                 }
             }
         }
+
+        GeoJson::from(features)
     }
 
-    GeoJson::from(features)
-}
-
-pub fn get_signalized_junctions(graph: &OsGraph, full_path: Vec<RouteNode>) -> GeoJson {
-    let mut features = Vec::new();
-    for node in full_path {
-        if let Some(x) = node.snapped {
-            if graph.signalized_junctions.contains(&NodeID(x)) {
-                features.push(Feature::from(Geometry::from(&Point::from(
-                    graph.graph.nodes[x as usize],
-                ))));
+    pub fn get_signalized_junctions(&self, full_path: Vec<RouteNode>) -> GeoJson {
+        let mut features = Vec::new();
+        for node in full_path {
+            if let Some(x) = node.snapped {
+                if self.signalized_junctions.contains(&NodeID(x)) {
+                    features.push(Feature::from(Geometry::from(&Point::from(
+                        self.graph.nodes[x as usize],
+                    ))));
+                }
             }
         }
+        GeoJson::from(features)
     }
-    GeoJson::from(features)
-}
 
-pub fn split_links(graph: &OsGraph, full_ls: LineString, full_path: Vec<RouteNode>) -> GeoJson {
-    let mut split_pts: Vec<Coord> = Vec::new();
-    for node in &full_path {
-        if let Some(x) = node.snapped {
-            if graph.signalized_junctions.contains(&NodeID(x)) {
-                split_pts.push(graph.graph.nodes[x as usize]);
+    pub fn split_links(&self, full_ls: LineString, full_path: Vec<RouteNode>) -> GeoJson {
+        let mut split_pts: Vec<Coord> = Vec::new();
+        for node in &full_path {
+            if let Some(x) = node.snapped {
+                if self.signalized_junctions.contains(&NodeID(x)) {
+                    split_pts.push(self.graph.nodes[x as usize]);
+                }
             }
         }
-    }
-    // TODO Not quite right, because it'll double count on either side of frees
-    for pair in full_path.windows(2) {
-        if pair[0].snapped.is_some() != pair[1].snapped.is_some() {
-            split_pts.push(pair[0].free.or(pair[1].free).unwrap().into());
+        // TODO Not quite right, because it'll double count on either side of frees
+        for pair in full_path.windows(2) {
+            if pair[0].snapped.is_some() != pair[1].snapped.is_some() {
+                split_pts.push(pair[0].free.or(pair[1].free).unwrap().into());
+            }
         }
-    }
 
-    let Some(splits) = split_line_at_points(&full_ls, &split_pts) else {
-        error!("Couldn't split");
-        return GeoJson::from(vec![Feature::from(Geometry::from(&full_ls))]);
-    };
-    GeoJson::from(
-        splits
-            .into_iter()
-            .map(|ls| Feature::from(Geometry::from(&ls)))
-            .collect::<Vec<_>>(),
-    )
+        let Some(splits) = split_line_at_points(&full_ls, &split_pts) else {
+            error!("Couldn't split");
+            return GeoJson::from(vec![Feature::from(Geometry::from(&full_ls))]);
+        };
+        GeoJson::from(
+            splits
+                .into_iter()
+                .map(|ls| Feature::from(Geometry::from(&ls)))
+                .collect::<Vec<_>>(),
+        )
+    }
 }
 
 fn split_line_at_points(ls: &LineString, pts: &Vec<Coord>) -> Option<Vec<LineString>> {

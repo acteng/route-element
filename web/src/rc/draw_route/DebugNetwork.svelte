@@ -1,16 +1,17 @@
 <script lang="ts">
-  import { debugNetwork } from "backend";
+  import { OsGraph } from "backend";
   import type { FeatureCollection } from "geojson";
   import { CircleLayer, GeoJSON, LineLayer } from "svelte-maplibre";
   import { Popup } from "svelte-utils/map";
 
+  export let graph: OsGraph;
   export let showDebug: boolean;
 
   function getData(): {
     os_nodes: FeatureCollection;
     os_links: FeatureCollection;
   } {
-    let x = JSON.parse(debugNetwork());
+    let x = JSON.parse(graph.debugNetwork());
     return {
       os_nodes: JSON.parse(x.os_nodes),
       os_links: JSON.parse(x.os_links),

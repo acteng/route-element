@@ -93,9 +93,10 @@
           <BusStopQuestionsMode />
         {:else if $mode.kind == "draw-route" && $map}
           <DrawRouteMode
+            graph={$mode.graph}
             map={$map}
             editingExisting={false}
-            finish={finishRoute}
+            finish={() => finishRoute($mode.graph)}
             cancel={() => ($mode = { kind: "neutral" })}
           />
         {/if}
