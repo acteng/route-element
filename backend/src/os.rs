@@ -7,11 +7,12 @@ use geo::{
     LineString, Point, Rect,
 };
 use geojson::{Feature, GeoJson, Geometry};
-use log::info;
+use log::{error, info};
 use petgraph::graphmap::UnGraphMap;
 use route_snapper_graph::{Edge, EdgeID, NodeID, RouteSnapperMap};
 use rstar::{primitives::GeomWithData, RTree};
 use serde::Serialize;
+use utils::LineSplit;
 
 use crate::{fgb, RouteNode};
 
@@ -384,4 +385,53 @@ pub fn get_signalized_junctions(graph: &OsGraph, full_path: Vec<RouteNode>) -> G
         }
     }
     GeoJson::from(features)
+}
+
+pub fn split_links(graph: &OsGraph, full_ls: LineString, full_path: Vec<RouteNode>) -> GeoJson {
+    let mut split_pts: Vec<Coord> = Vec::new();
+    for node in &full_path {
+        if let Some(x) = node.snapped {
+            if graph.signalized_junctions.contains(&NodeID(x)) {
+                split_pts.push(graph.graph.nodes[x as usize]);
+            }
+        }
+    }
+    // TODO Not quite right, because it'll double count on either side of frees
+    for pair in full_path.windows(2) {
+        if pair[0].snapped.is_some() != pair[1].snapped.is_some() {
+            split_pts.push(pair[0].free.or(pair[1].free).unwrap().into());
+        }
+    }
+
+    let Some(splits) = split_line_at_points(&full_ls, &split_pts) else {
+        error!("Couldn't split");
+        return GeoJson::from(vec![Feature::from(Geometry::from(&full_ls))]);
+    };
+    GeoJson::from(
+        splits
+            .into_iter()
+            .map(|ls| Feature::from(Geometry::from(&ls)))
+            .collect::<Vec<_>>(),
+    )
+}
+
+fn split_line_at_points(ls: &LineString, pts: &Vec<Coord>) -> Option<Vec<LineString>> {
+    let mut fractions = Vec::new();
+    for pt in pts {
+        fractions.push(ls.line_locate_point(&Point::from(*pt))?);
+    }
+
+    // Make sure to handle the start and end
+    fractions.push(0.0);
+    fractions.push(1.0);
+    fractions.sort_by_key(|x| (x * 10000.0) as usize);
+    fractions.dedup();
+
+    let mut result = Vec::new();
+    for split in ls.line_split_many(&fractions)? {
+        if let Some(ls) = split {
+            result.push(ls);
+        }
+    }
+    Some(result)
 }

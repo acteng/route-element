@@ -2,6 +2,7 @@ import init, {
   getSideRoads,
   getSignalizedJunctions,
   makeRouteSnapper,
+  splitLinks,
 } from "backend";
 import type { Map } from "maplibre-gl";
 import { init as init2, RouteTool } from "route-snapper-ts";
@@ -66,19 +67,33 @@ export function finishRoute() {
       return;
     }
 
-    addExtras(feature.properties.full_path);
-
-    // TODO Make multiple links when freehand sections appear
-
-    let f = blankLink(get(state).links.length);
-    f.geometry = feature.geometry;
-    // Discard waypoints and other things
-    f.properties.name = feature.properties.route_name;
-
     state.update((x) => {
-      x.links.push(f);
+      for (let split of JSON.parse(
+        splitLinks(feature, feature.properties.full_path),
+      ).features) {
+        let f = blankLink(x.links.length);
+        f.geometry = split.geometry;
+        // Discard waypoints and other things
+        // TODO Need to rename split links
+        f.properties.name = feature.properties.route_name;
+        x.links.push(f);
+      }
+
+      for (let f of JSON.parse(getSideRoads(feature.properties.full_path))
+        .features) {
+        f.properties = blankSideRoad(x.side_roads.length).properties;
+        x.side_roads.push(f);
+      }
+
+      for (let f of JSON.parse(
+        getSignalizedJunctions(feature.properties.full_path),
+      ).features) {
+        x.jats.push(blankJAT(x.jats.length, f.geometry.coordinates));
+      }
+
       return x;
     });
+
     mode.set({ kind: "edit-link", idx: get(state).links.length - 1 });
   } catch (err) {
     window.alert(`Bug: ${err}`);
@@ -86,21 +101,4 @@ export function finishRoute() {
 
   waypoints.set([]);
   mode.set({ kind: "neutral" });
-}
-
-type Node = { snapped: number } | { free: [number, number] };
-
-function addExtras(nodes: Node[]) {
-  state.update((x) => {
-    for (let f of JSON.parse(getSideRoads(nodes)).features) {
-      f.properties = blankSideRoad(x.side_roads.length).properties;
-      x.side_roads.push(f);
-    }
-
-    for (let f of JSON.parse(getSignalizedJunctions(nodes)).features) {
-      x.jats.push(blankJAT(x.jats.length, f.geometry.coordinates));
-    }
-
-    return x;
-  });
 }

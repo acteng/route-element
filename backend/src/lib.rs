@@ -76,6 +76,23 @@ pub fn debug_network() -> Result<String, JsValue> {
     }
 }
 
+// TODO Combine these calls
+/// Takes a Feature<LineString> and list of Nodes from the route snapper and returns a
+/// FeatureCollection of LineStrings representing links, with splits inserted between signalized
+/// junctions.
+#[wasm_bindgen(js_name = splitLinks)]
+pub fn split_links(input1: JsValue, input2: JsValue) -> Result<String, JsValue> {
+    if let Some(graph) = LAST_GRAPH.lock().unwrap().as_ref() {
+        let f: Feature = serde_wasm_bindgen::from_value(input1)?;
+        let line: LineString = f.try_into().map_err(err_to_js)?;
+
+        let full_path: Vec<RouteNode> = serde_wasm_bindgen::from_value(input2)?;
+        serde_json::to_string(&os::split_links(graph, line, full_path)).map_err(err_to_js)
+    } else {
+        Err(JsValue::from_str("have to call makeRouteSnapper first"))
+    }
+}
+
 /// Takes a list of Nodes from the route snapper and returns a FeatureCollection of LineStrings
 /// representing side roads crossed by the path
 #[wasm_bindgen(js_name = getSideRoads)]
@@ -161,6 +178,5 @@ async fn read_all_pop_density(line: &LineString, base_url: &str) -> Result<Vec<P
 #[derive(Deserialize)]
 pub struct RouteNode {
     snapped: Option<u32>,
-    #[allow(unused)]
     free: Option<[f64; 2]>,
 }
