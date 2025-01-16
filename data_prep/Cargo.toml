@@ -1,0 +1,13 @@
+[package]
+name = "data_prep"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.82"
+flatgeobuf = { version = "4.5.0", default-features = false }
+geo = "0.29.3"
+geojson = { git = "https://github.com/georust/geojson", features = ["geo-types"] }
+geozero = { version = "0.14.0", default-features = false, features = ["with-geo"] }
+rstar = "0.12.2"
+serde = "1.0.188"

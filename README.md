@@ -18,3 +18,12 @@ Download the GB-wide gpkg from <https://osdatahub.os.uk/downloads/open/OpenRoads
 ogr2ogr os_links.fgb oproad_gb.gpkg -t_srs EPSG:4326 -sql 'SELECT id, road_classification, start_node, end_node, geometry FROM road_link'
 ogr2ogr os_nodes.fgb oproad_gb.gpkg -t_srs EPSG:4326 -sql 'SELECT id, geometry FROM road_node'
 ```
+
+## Get traffic signal nodes from OSM
+
+OS appears to have no dataset indicating signalized juntions.
+
+```
+osmium tags-filter ~/Downloads/england-latest.osm.pbf n/highway=traffic_signals -o tsigs.osm.pbf
+osmium export tsigs.osm.pbf -o tsigs.geojson
+```
