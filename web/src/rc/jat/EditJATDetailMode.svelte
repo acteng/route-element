@@ -12,10 +12,6 @@
   import { describeScore } from "./score";
 
   export let junctionIdx: number;
-  export let stage: "existing" | "proposed";
-
-  let otherStage: "existing" | "proposed" =
-    stage == "existing" ? "proposed" : "existing";
 
   type Mode =
     | { mode: "select" }
@@ -63,16 +59,16 @@
       return;
     }
     if (mode.id.kind == "movement") {
-      $state.jats[junctionIdx].properties[stage].movements.splice(
+      $state.jats[junctionIdx].properties.details.movements.splice(
         mode.id.idx,
         1,
       );
-      $state.jats[junctionIdx].properties[stage].movements =
-        $state.jats[junctionIdx].properties[stage].movements;
+      $state.jats[junctionIdx].properties.details.movements =
+        $state.jats[junctionIdx].properties.details.movements;
     } else {
-      $state.jats[junctionIdx].properties[stage].arms.splice(mode.id.idx, 1);
-      $state.jats[junctionIdx].properties[stage].arms =
-        $state.jats[junctionIdx].properties[stage].arms;
+      $state.jats[junctionIdx].properties.details.arms.splice(mode.id.idx, 1);
+      $state.jats[junctionIdx].properties.details.arms =
+        $state.jats[junctionIdx].properties.details.arms;
     }
     stopEditing();
   }
@@ -93,30 +89,6 @@
     }
   }
 
-  function copyArms() {
-    if ($state.jats[junctionIdx].properties[stage].arms.length > 0) {
-      if (!window.confirm("Overwrite arms?")) {
-        return;
-      }
-    }
-    $state.jats[junctionIdx].properties[stage].arms = JSON.parse(
-      JSON.stringify($state.jats[junctionIdx].properties[otherStage].arms),
-    );
-    $state = $state;
-  }
-
-  function copyMovements() {
-    if ($state.jats[junctionIdx].properties[stage].movements.length > 0) {
-      if (!window.confirm("Overwrite movements?")) {
-        return;
-      }
-    }
-    $state.jats[junctionIdx].properties[stage].movements = JSON.parse(
-      JSON.stringify($state.jats[junctionIdx].properties[otherStage].movements),
-    );
-    $state = $state;
-  }
-
   let scoreColors = {
     0: colors.red,
     1: colors.amber,
@@ -126,17 +98,17 @@
 
   function autogenerateMovements() {
     if (
-      $state.jats[junctionIdx].properties[stage].movements.length > 0 &&
+      $state.jats[junctionIdx].properties.details.movements.length > 0 &&
       !window.confirm(`Overwrite all cycling movements?`)
     ) {
       return;
     }
-    let ww = $state.jats[junctionIdx].properties[stage].movements.filter(
+    let ww = $state.jats[junctionIdx].properties.details.movements.filter(
       (m) => m.kind == "walking & wheeling",
     );
-    $state.jats[junctionIdx].properties[stage].movements = [
+    $state.jats[junctionIdx].properties.details.movements = [
       ...ww,
-      ...generateMovements($state.jats[junctionIdx].properties[stage].arms),
+      ...generateMovements($state.jats[junctionIdx].properties.details.arms),
     ];
   }
 
@@ -155,7 +127,7 @@
 
 <SplitComponent>
   <div slot="sidebar" bind:this={sidebar}>
-    <h2>{stage} JAT for {$state.jats[junctionIdx].properties.name}</h2>
+    <h2>JAT for {$state.jats[junctionIdx].properties.name}</h2>
 
     {#if mode.mode != "editing"}
       <button
@@ -165,7 +137,7 @@
       </button>
 
       <h3>Arms</h3>
-      {#each $state.jats[junctionIdx].properties[stage].arms as arm, idx}
+      {#each $state.jats[junctionIdx].properties.details.arms as arm, idx}
         <ClickableCard
           name={`${armLabel(idx)} - ${arm.name || "Unnamed arm"}`}
           on:click={() => select({ kind: "arm", idx })}
@@ -174,26 +146,21 @@
           hasSlot={false}
         />
       {/each}
-      {#if $state.jats[junctionIdx].properties[otherStage].arms.length > 0}
-        <button class="secondary" on:click={copyArms}>
-          Copy arms from {otherStage}
-        </button>
-      {/if}
 
       <h3>Movements</h3>
       <p>
-        Total JAT score for {stage} junction
+        Total JAT score
         <i>{$state.jats[junctionIdx].properties.name}</i>
-        : {describeScore($state.jats[junctionIdx].properties[stage])}
+        : {describeScore($state.jats[junctionIdx].properties.details)}
       </p>
       <button
         class="secondary"
         on:click={autogenerateMovements}
-        disabled={$state.jats[junctionIdx].properties[stage].arms.length < 2}
+        disabled={$state.jats[junctionIdx].properties.details.arms.length < 2}
       >
         Generate cycling movements between all arms
       </button>
-      {#each $state.jats[junctionIdx].properties[stage].movements as movement, idx}
+      {#each $state.jats[junctionIdx].properties.details.movements as movement, idx}
         {@const color = scoreColors[movement.score]}
         <ClickableCard
           name={movement.name || "Unnamed movement"}
@@ -213,13 +180,8 @@
           </div>
         </ClickableCard>
       {/each}
-      {#if $state.jats[junctionIdx].properties[otherStage].movements.length > 0}
-        <button class="secondary" on:click={copyMovements}>
-          Copy movements from {otherStage}
-        </button>
-      {/if}
     {:else if mode.id.kind == "movement"}
-      <Form {junctionIdx} {stage} idx={mode.id.idx} />
+      <Form {junctionIdx} idx={mode.id.idx} />
       <button on:click={stopEditing}>Save</button>
       <button on:click={deleteItem}>Delete</button>
     {:else}
@@ -230,7 +192,7 @@
         Arm name
         <input
           type="text"
-          bind:value={$state.jats[junctionIdx].properties[stage].arms[
+          bind:value={$state.jats[junctionIdx].properties.details.arms[
             mode.id.idx
           ].name}
         />
@@ -255,7 +217,6 @@
 
     <MapControls
       {junctionIdx}
-      {stage}
       {mode}
       {hoveringSidebar}
       {select}

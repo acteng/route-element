@@ -36,17 +36,8 @@
       <input type="text" bind:value={$state.jats[idx].properties.name} />
     </label>
 
-    <button
-      on:click={() =>
-        ($mode = { kind: "edit-jat-detail", idx, stage: "existing" })}
-    >
-      Existing
-    </button>
-    <button
-      on:click={() =>
-        ($mode = { kind: "edit-jat-detail", idx, stage: "proposed" })}
-    >
-      Proposed
+    <button on:click={() => ($mode = { kind: "edit-jat-detail", idx })}>
+      Fill out JAT
     </button>
   </div>
 

@@ -30,7 +30,6 @@
   type ID = { kind: Kind; idx: number };
 
   export let junctionIdx: number;
-  export let stage: "existing" | "proposed";
   export let mode: Mode;
   export let hoveringSidebar: ID | null;
   export let select: (id: ID) => Promise<void>;
@@ -59,14 +58,14 @@
       if (id.kind == "arm") {
         gj.features.push(
           armFeature(
-            state.jats[junctionIdx].properties[stage].arms[id.idx],
+            state.jats[junctionIdx].properties.details.arms[id.idx],
             id.idx,
           ),
         );
       } else {
         gj.features.push(
           lineFeature(
-            state.jats[junctionIdx].properties[stage].movements[id.idx],
+            state.jats[junctionIdx].properties.details.movements[id.idx],
             id.idx,
           ),
         );
@@ -97,8 +96,8 @@
     }
 
     if (mode.mode == "new-arm") {
-      $state.jats[junctionIdx].properties[stage].arms = [
-        ...$state.jats[junctionIdx].properties[stage].arms,
+      $state.jats[junctionIdx].properties.details.arms = [
+        ...$state.jats[junctionIdx].properties.details.arms,
         {
           point: e.detail.lngLat.toArray() as Position,
           name: "",
@@ -106,11 +105,11 @@
       ];
       await select({
         kind: "arm",
-        idx: $state.jats[junctionIdx].properties[stage].arms.length - 1,
+        idx: $state.jats[junctionIdx].properties.details.arms.length - 1,
       });
     } else {
-      $state.jats[junctionIdx].properties[stage].movements = [
-        ...$state.jats[junctionIdx].properties[stage].movements,
+      $state.jats[junctionIdx].properties.details.movements = [
+        ...$state.jats[junctionIdx].properties.details.movements,
         {
           point1: e.detail.lngLat.toArray() as Position,
           // Offset 5 and 10 meters to the north
@@ -126,7 +125,7 @@
       ];
       await select({
         kind: "movement",
-        idx: $state.jats[junctionIdx].properties[stage].movements.length - 1,
+        idx: $state.jats[junctionIdx].properties.details.movements.length - 1,
       });
     }
   }
@@ -139,11 +138,11 @@
   function toGj(state: State): FeatureCollection {
     let gj = {
       type: "FeatureCollection" as const,
-      features: state.jats[junctionIdx].properties[stage].movements.map(
+      features: state.jats[junctionIdx].properties.details.movements.map(
         (movement, idx) => lineFeature(movement, idx),
       ),
     };
-    for (let m of state.jats[junctionIdx].properties[stage].movements) {
+    for (let m of state.jats[junctionIdx].properties.details.movements) {
       gj.features.push(arrowFeature(m, gj.features.length));
       // Arrows at both ends
       if (m.kind == "walking & wheeling") {
@@ -248,7 +247,7 @@
   </div>
 {/if}
 
-{#each $state.jats[junctionIdx].properties[stage].arms as arm, idx}
+{#each $state.jats[junctionIdx].properties.details.arms as arm, idx}
   <Marker
     draggable
     bind:lngLat={arm.point}
@@ -261,7 +260,7 @@
   </Marker>
 {/each}
 
-{#each $state.jats[junctionIdx].properties[stage].movements as movement, idx}
+{#each $state.jats[junctionIdx].properties.details.movements as movement, idx}
   <Marker
     draggable
     bind:lngLat={movement.point1}

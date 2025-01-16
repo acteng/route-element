@@ -4,7 +4,6 @@
   import Guidance from "./guidance/Guidance.svelte";
 
   export let junctionIdx: number;
-  export let stage: "existing" | "proposed";
   export let idx: number;
 
   let scoreChoices: [string, string][] = [
@@ -19,13 +18,13 @@
   Name
   <input
     type="text"
-    bind:value={$state.jats[junctionIdx].properties[stage].movements[idx].name}
+    bind:value={$state.jats[junctionIdx].properties.details.movements[idx].name}
   />
 </label>
 
 <Picker
   k="horiz-radio"
-  bind:value={$state.jats[junctionIdx].properties[stage].movements[idx].kind}
+  bind:value={$state.jats[junctionIdx].properties.details.movements[idx].kind}
   choices={[
     ["cycling", "Cycling"],
     ["walking & wheeling", "Walking & Wheeling"],
@@ -34,13 +33,13 @@
   User
 </Picker>
 
-{#if $state.jats[junctionIdx].properties[stage].movements[idx].kind == "cycling"}
+{#if $state.jats[junctionIdx].properties.details.movements[idx].kind == "cycling"}
   <Guidance />
 {/if}
 
 <Picker
   k="horiz-radio"
-  bind:value={$state.jats[junctionIdx].properties[stage].movements[idx].score}
+  bind:value={$state.jats[junctionIdx].properties.details.movements[idx].score}
   choices={scoreChoices}
 >
   Score
@@ -49,6 +48,7 @@
 <label>
   Comments
   <textarea
-    bind:value={$state.jats[junctionIdx].properties[stage].movements[idx].notes}
+    bind:value={$state.jats[junctionIdx].properties.details.movements[idx]
+      .notes}
   />
 </label>

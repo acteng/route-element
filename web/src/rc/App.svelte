@@ -78,7 +78,7 @@
         {:else if $mode.kind == "edit-jat"}
           <EditJATMode idx={$mode.idx} />
         {:else if $mode.kind == "edit-jat-detail"}
-          <EditJATDetailMode junctionIdx={$mode.idx} stage={$mode.stage} />
+          <EditJATDetailMode junctionIdx={$mode.idx} />
         {:else if $mode.kind == "edit-bus-stop"}
           <EditBusStopMode idx={$mode.idx} />
         {:else if $mode.kind == "edit-crossing"}

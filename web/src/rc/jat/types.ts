@@ -6,8 +6,8 @@ export type JAT = Feature<
   {
     name: string;
     color: string;
-    existing: JunctionAssessment;
-    proposed: JunctionAssessment;
+    // Indirection for future-proofing dealing with existing/proposed
+    details: JunctionAssessment;
   }
 >;
 
@@ -44,12 +44,7 @@ export function blankJAT(idx: number, pt: Position): JAT {
     properties: {
       name: "Untitled JAT",
       color: colors[idx % colors.length],
-      existing: {
-        arms: [],
-        movements: [],
-        notes: "",
-      },
-      proposed: {
+      details: {
         arms: [],
         movements: [],
         notes: "",

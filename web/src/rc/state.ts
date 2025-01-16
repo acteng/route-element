@@ -31,7 +31,7 @@ type Mode =
   | { kind: "edit-link"; idx: number }
   | { kind: "link-questions"; idx: number }
   | { kind: "edit-jat"; idx: number }
-  | { kind: "edit-jat-detail"; idx: number; stage: "existing" | "proposed" }
+  | { kind: "edit-jat-detail"; idx: number }
   | { kind: "edit-bus-stop"; idx: number }
   | { kind: "bus-stop-questions" }
   | { kind: "edit-crossing"; idx: number }
