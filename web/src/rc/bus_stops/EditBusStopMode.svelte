@@ -68,7 +68,7 @@
       bind:lngLat={$state.bus_stops[idx].geometry.coordinates}
       color={$state.bus_stops[idx].properties.color}
     >
-      <img src={icon} />
+      <img src={icon} alt="" />
     </DraggableMarker>
   </div>
 </SplitComponent>

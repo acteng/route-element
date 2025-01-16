@@ -75,7 +75,7 @@
       bind:lngLat={$state.crossings[idx].geometry.coordinates}
       color={$state.crossings[idx].properties.color}
     >
-      <img src={icon} />
+      <img src={icon} alt="" />
     </DraggableMarker>
   </div>
 </SplitComponent>
