@@ -56,7 +56,7 @@
   </div>
 
   <div slot="map">
-    <ShowAllLayers except="crossings" />
+    <ShowAllLayers except="crossings" showMissingProperty={["get", "sa10"]} />
 
     <GeoJSON data={gj($state.crossings)} generateId>
       <SymbolLayer

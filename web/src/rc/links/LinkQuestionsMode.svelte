@@ -51,6 +51,10 @@
   </div>
 
   <div slot="map">
-    <ShowAllLayers showColor="links" except="" />
+    <ShowAllLayers
+      showColor="links"
+      except=""
+      showMissingProperty={["at", qIdx, ["get", "answers"]]}
+    />
   </div>
 </SplitComponent>

@@ -22,7 +22,7 @@
   <div slot="sidebar">
     <button on:click={() => ($mode = { kind: "neutral" })}>Done</button>
 
-    <h2>SA01: Conflict at Side ROads and Priority Junctions</h2>
+    <h2>SA01: Conflict at Side Roads and Priority Junctions</h2>
     <p>{metric.description}</p>
 
     <ol>
@@ -45,6 +45,10 @@
   </div>
 
   <div slot="map">
-    <ShowAllLayers showColor="side_roads" except="" />
+    <ShowAllLayers
+      showColor="side_roads"
+      except=""
+      showMissingProperty={["get", "sa01"]}
+    />
   </div>
 </SplitComponent>

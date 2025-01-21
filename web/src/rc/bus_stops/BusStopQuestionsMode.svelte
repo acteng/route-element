@@ -45,6 +45,10 @@
   </div>
 
   <div slot="map">
-    <ShowAllLayers showColor="bus_stops" except="" />
+    <ShowAllLayers
+      showColor="bus_stops"
+      except=""
+      showMissingProperty={["get", "st20"]}
+    />
   </div>
 </SplitComponent>

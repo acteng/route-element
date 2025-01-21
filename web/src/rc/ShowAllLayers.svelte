@@ -1,4 +1,5 @@
 <script lang="ts">
+  import type { ExpressionSpecification } from "maplibre-gl";
   import {
     CircleLayer,
     GeoJSON,
@@ -21,6 +22,7 @@
     | "crossings"
     | "jats"
     | "side_roads" = "";
+  export let showMissingProperty: ExpressionSpecification | null = null;
 </script>
 
 {#if except != "links"}
@@ -28,7 +30,10 @@
     <LineLayer
       paint={{
         "line-color": showColor == "links" ? ["get", "color"] : "black",
-        "line-width": 6,
+        "line-width":
+          showColor == "links" && showMissingProperty
+            ? ["case", ["to-boolean", showMissingProperty], 6, 15]
+            : 6,
       }}
     />
   </GeoJSON>
@@ -43,6 +48,11 @@
       }}
       paint={{
         "icon-color": showColor == "bus_stops" ? ["get", "color"] : "black",
+        "icon-halo-color": "black",
+        "icon-halo-width":
+          showColor == "bus_stops" && showMissingProperty
+            ? ["case", ["to-boolean", showMissingProperty], 0, 5]
+            : 0,
       }}
     />
   </GeoJSON>
@@ -57,6 +67,11 @@
       }}
       paint={{
         "icon-color": showColor == "crossings" ? ["get", "color"] : "black",
+        "icon-halo-color": "black",
+        "icon-halo-width":
+          showColor == "crossings" && showMissingProperty
+            ? ["case", ["to-boolean", showMissingProperty], 0, 5]
+            : 0,
       }}
     />
   </GeoJSON>
@@ -67,7 +82,6 @@
     <CircleLayer
       paint={{
         "circle-color": "rgba(0,0,0,0)",
-        "circle-stroke-width": 5,
         "circle-stroke-color": showColor == "jats" ? ["get", "color"] : "black",
         "circle-radius": 20,
       }}
@@ -80,7 +94,10 @@
     <LineLayer
       paint={{
         "line-color": showColor == "side_roads" ? ["get", "color"] : "black",
-        "line-width": 3,
+        "line-width":
+          showColor == "side_roads" && showMissingProperty
+            ? ["case", ["to-boolean", showMissingProperty], 3, 6]
+            : 3,
       }}
     />
   </GeoJSON>
