@@ -11,6 +11,16 @@ Crossings:
   </button>
 </div>
 
+<div>
+  <ClickLink on:click={() => ($mode = { kind: "crossing-questions" })}>
+    SA10
+  </ClickLink>:
+  <progress
+    value={$state.crossings.filter((f) => f.properties.sa10 != "").length}
+    max={$state.crossings.length}
+  />
+</div>
+
 <ol>
   {#each $state.crossings as crossing, idx}
     <li>

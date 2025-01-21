@@ -11,6 +11,7 @@
   import BusStopQuestionsMode from "./bus_stops/BusStopQuestionsMode.svelte";
   import EditBusStopMode from "./bus_stops/EditBusStopMode.svelte";
   import ContextualLayers from "./context/ContextualLayers.svelte";
+  import CrossingQuestionsMode from "./crossings/CrossingQuestionsMode.svelte";
   import EditCrossingMode from "./crossings/EditCrossingMode.svelte";
   import DrawRouteMode from "./draw_route/DrawRouteMode.svelte";
   import { finishRoute } from "./draw_route/stores";
@@ -83,6 +84,8 @@
           <EditBusStopMode idx={$mode.idx} />
         {:else if $mode.kind == "edit-crossing"}
           <EditCrossingMode idx={$mode.idx} />
+        {:else if $mode.kind == "crossing-questions"}
+          <CrossingQuestionsMode />
         {:else if $mode.kind == "edit-side-road"}
           <EditSideRoadMode idx={$mode.idx} />
         {:else if $mode.kind == "link-questions"}

@@ -35,6 +35,7 @@ type Mode =
   | { kind: "edit-jat-detail"; idx: number }
   | { kind: "edit-bus-stop"; idx: number }
   | { kind: "bus-stop-questions" }
+  | { kind: "crossing-questions" }
   | { kind: "edit-crossing"; idx: number }
   | { kind: "edit-side-road"; idx: number }
   | { kind: "side-road-questions" }
