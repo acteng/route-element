@@ -24,8 +24,6 @@
   import LinkQuestionsMode from "./links/LinkQuestionsMode.svelte";
   import NeutralMode from "./NeutralMode.svelte";
   import NewPointMode from "./NewPointMode.svelte";
-  import EditSideRoadMode from "./side_roads/EditSideRoadMode.svelte";
-  import SideRoadQuestionsMode from "./side_roads/SideRoadQuestionsMode.svelte";
   import { basemap, map, mode, state } from "./state";
 
   $: window.localStorage.setItem("tmp-rcv2", JSON.stringify($state));
@@ -97,12 +95,8 @@
           <EditCrossingMode idx={$mode.idx} />
         {:else if $mode.kind == "crossing-questions"}
           <CrossingQuestionsMode />
-        {:else if $mode.kind == "edit-side-road"}
-          <EditSideRoadMode idx={$mode.idx} />
         {:else if $mode.kind == "link-questions"}
           <LinkQuestionsMode qIdx={$mode.idx} />
-        {:else if $mode.kind == "side-road-questions"}
-          <SideRoadQuestionsMode />
         {:else if $mode.kind == "bus-stop-questions"}
           <BusStopQuestionsMode />
         {:else if $mode.kind == "draw-route" && $map}

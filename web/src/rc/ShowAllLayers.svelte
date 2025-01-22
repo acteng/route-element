@@ -8,20 +8,8 @@
   } from "svelte-maplibre";
   import { gj, state } from "./state";
 
-  export let except:
-    | ""
-    | "links"
-    | "bus_stops"
-    | "crossings"
-    | "jats"
-    | "side_roads";
-  export let showColor:
-    | ""
-    | "links"
-    | "bus_stops"
-    | "crossings"
-    | "jats"
-    | "side_roads" = "";
+  export let except: "" | "links" | "bus_stops" | "crossings" | "jats";
+  export let showColor: "" | "links" | "bus_stops" | "crossings" | "jats" = "";
   export let showMissingProperty: ExpressionSpecification | null = null;
 </script>
 
@@ -84,20 +72,6 @@
         "circle-color": "rgba(0,0,0,0)",
         "circle-stroke-color": showColor == "jats" ? ["get", "color"] : "black",
         "circle-radius": 20,
-      }}
-    />
-  </GeoJSON>
-{/if}
-
-{#if except != "side_roads"}
-  <GeoJSON data={gj($state.side_roads)}>
-    <LineLayer
-      paint={{
-        "line-color": showColor == "side_roads" ? ["get", "color"] : "black",
-        "line-width":
-          showColor == "side_roads" && showMissingProperty
-            ? ["case", ["to-boolean", showMissingProperty], 3, 6]
-            : 3,
       }}
     />
   </GeoJSON>

@@ -77,8 +77,7 @@ export function finishRoute(graph: OsGraph) {
       for (let f of JSON.parse(
         graph.getSideRoadCrossings(feature.properties.full_path),
       ).features) {
-        f.properties = blankCrossing(x.crossings.length).properties;
-        x.crossings.push(f);
+        x.crossings.push(blankCrossing(x.crossings.length, f.geometry.coordinates));
       }
 
       for (let f of JSON.parse(

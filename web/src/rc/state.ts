@@ -6,7 +6,6 @@ import type { BusStop } from "./bus_stops/types";
 import type { Crossing } from "./crossings/types";
 import type { JAT } from "./jat/types";
 import type { Link } from "./links/types";
-import type { SideRoad } from "./side_roads/types";
 
 export let map: Writable<Map | undefined> = writable(undefined);
 export let state: Writable<State> = writable(loadState());
@@ -16,7 +15,6 @@ export type State = {
   jats: JAT[];
   bus_stops: BusStop[];
   crossings: Crossing[];
-  side_roads: SideRoad[];
 };
 
 export function gj(features: Feature[]): FeatureCollection {
@@ -35,10 +33,8 @@ type Mode =
   | { kind: "edit-jat-detail"; idx: number }
   | { kind: "edit-bus-stop"; idx: number }
   | { kind: "bus-stop-questions" }
-  | { kind: "crossing-questions" }
   | { kind: "edit-crossing"; idx: number }
-  | { kind: "edit-side-road"; idx: number }
-  | { kind: "side-road-questions" }
+  | { kind: "crossing-questions" }
   | { kind: "draw-route"; graph: OsGraph };
 export let mode: Writable<Mode> = writable({ kind: "neutral" });
 export let basemap = writable(
@@ -48,13 +44,7 @@ export let basemap = writable(
 );
 
 export function checkState(x: any): boolean {
-  return (
-    "links" in x &&
-    "jats" in x &&
-    "bus_stops" &&
-    "crossings" in x &&
-    "side_roads" in x
-  );
+  return "links" in x && "jats" in x && "bus_stops" && "crossings" in x;
 }
 
 function loadState(): State {
@@ -64,5 +54,5 @@ function loadState(): State {
       return x;
     }
   } catch (err) {}
-  return { links: [], jats: [], bus_stops: [], crossings: [], side_roads: [] };
+  return { links: [], jats: [], bus_stops: [], crossings: [] };
 }
