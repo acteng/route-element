@@ -4,6 +4,7 @@ use anyhow::{bail, Context, Result};
 use flatgeobuf::{FeatureProperties, FgbFeature};
 use geo::{
     BoundingRect, Closest, ClosestPoint, Coord, Distance, Haversine, Length, LineLocatePoint,
+    LineInterpolatePoint,
     LineString, Point, Rect,
 };
 use geojson::{Feature, GeoJson, Geometry};
@@ -351,7 +352,7 @@ impl OsGraph {
         })
     }
 
-    pub fn get_side_roads(&self, full_path: Vec<RouteNode>) -> GeoJson {
+    pub fn get_side_road_crossings(&self, full_path: Vec<RouteNode>) -> GeoJson {
         let mut batches: Vec<Vec<NodeID>> = Vec::new();
         for batch in full_path.chunk_by(|a, b| a.snapped.is_some() == b.snapped.is_some()) {
             // Ignore freehand segments
@@ -369,6 +370,7 @@ impl OsGraph {
         // Hard to distinguish.
         let mut features = Vec::new();
         for batch in batches {
+            let nodes_in_this_batch: HashSet<NodeID> = batch.iter().cloned().collect();
             let edges_in_this_batch: HashSet<EdgeID> = batch
                 .windows(2)
                 .map(|pair| self.node_pair_to_edge[&(pair[0], pair[1])])
@@ -377,9 +379,17 @@ impl OsGraph {
             for node in batch {
                 for edge in &self.links_per_node[&node] {
                     if !edges_in_this_batch.contains(edge) {
-                        features.push(Feature::from(Geometry::from(
-                            &self.graph.edges[edge.0 as usize].geometry,
-                        )));
+                        // Take a point a fixed distance away from the route
+                        let dist_away: f64 = 10.0;
+                        let side_road = &self.graph.edges[edge.0 as usize];
+                        let len = side_road.geometry.length::<Haversine>();
+                        let distance = if nodes_in_this_batch.contains(&side_road.node1) {
+                            dist_away.min(len)
+                        } else {
+                            (len - 10.0).max(0.0)
+                        };
+                        let pt = side_road.geometry.line_interpolate_point(distance / len).unwrap();
+                        features.push(Feature::from(Geometry::from(&pt)));
                     }
                 }
             }

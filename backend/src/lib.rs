@@ -82,12 +82,12 @@ impl OsGraph {
         serde_json::to_string(&self.split_links(line, full_path)).map_err(err_to_js)
     }
 
-    /// Takes a list of Nodes from the route snapper and returns a FeatureCollection of LineStrings
-    /// representing side roads crossed by the path
-    #[wasm_bindgen(js_name = getSideRoads)]
-    pub fn get_side_roads_wasm(&self, input: JsValue) -> Result<String, JsValue> {
+    /// Takes a list of Nodes from the route snapper and returns a FeatureCollection of Points
+    /// representing crossings for each side road crossed by the path
+    #[wasm_bindgen(js_name = getSideRoadCrossings)]
+    pub fn get_side_road_crossingss_wasm(&self, input: JsValue) -> Result<String, JsValue> {
         let full_path: Vec<RouteNode> = serde_wasm_bindgen::from_value(input)?;
-        serde_json::to_string(&self.get_side_roads(full_path)).map_err(err_to_js)
+        serde_json::to_string(&self.get_side_road_crossings(full_path)).map_err(err_to_js)
     }
 
     /// Takes a list of Nodes from the route snapper and returns a FeatureCollection of Points

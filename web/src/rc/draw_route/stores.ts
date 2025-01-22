@@ -3,9 +3,9 @@ import type { Map } from "maplibre-gl";
 import { init as init2, RouteTool } from "route-snapper-ts";
 import { emptyGeojson } from "svelte-utils/map";
 import { get, writable, type Writable } from "svelte/store";
+import { blankCrossing } from "../crossings/types";
 import { blankJAT } from "../jat/types";
 import { blankLink } from "../links/types";
-import { blankSideRoad } from "../side_roads/types";
 import { mode, state } from "../state";
 
 export interface Waypoint {
@@ -74,10 +74,11 @@ export function finishRoute(graph: OsGraph) {
         x.links.push(f);
       }
 
-      for (let f of JSON.parse(graph.getSideRoads(feature.properties.full_path))
-        .features) {
-        f.properties = blankSideRoad(x.side_roads.length).properties;
-        x.side_roads.push(f);
+      for (let f of JSON.parse(
+        graph.getSideRoadCrossings(feature.properties.full_path),
+      ).features) {
+        f.properties = blankCrossing(x.crossings.length).properties;
+        x.crossings.push(f);
       }
 
       for (let f of JSON.parse(
