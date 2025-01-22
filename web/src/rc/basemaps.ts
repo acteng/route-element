@@ -3,12 +3,14 @@ import type { StyleSpecification } from "maplibre-gl";
 let maptilerApiKey = "MZEJTanw3WpxRvt7qDfo";
 
 export async function getStyle(
-  googleApiKey: string,
+  style: string,
 ): Promise<string | StyleSpecification> {
-  if (!googleApiKey) {
-    return `https://api.maptiler.com/maps/dataviz/style.json?key=${maptilerApiKey}`;
+  if (style != "google") {
+    return `https://api.maptiler.com/maps/${style}/style.json?key=${maptilerApiKey}`;
   }
 
+  let googleApiKey =
+    new URLSearchParams(window.location.search).get("google") || "";
   let sessionKey = await getGoogleSessionKey(googleApiKey);
   let tiles = `https://tile.googleapis.com/v1/2dtiles/{z}/{x}/{y}?session=${sessionKey}&key=${googleApiKey}`;
 

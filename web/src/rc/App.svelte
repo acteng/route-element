@@ -1,5 +1,7 @@
 <script lang="ts">
   import "@picocss/pico/css/pico.jade.min.css";
+  import type { StyleSpecification } from "maplibre-gl";
+  import { onMount } from "svelte";
   import { MapLibre } from "svelte-maplibre";
   import {
     Layout,
@@ -8,6 +10,7 @@
   } from "svelte-utils/two_column_layout";
   import busStopIcon from "./assets/bus_stop.png?url";
   import crossingIcon from "./assets/crossing.png?url";
+  import { getStyle } from "./basemaps";
   import BusStopQuestionsMode from "./bus_stops/BusStopQuestionsMode.svelte";
   import EditBusStopMode from "./bus_stops/EditBusStopMode.svelte";
   import ContextualLayers from "./context/ContextualLayers.svelte";
@@ -15,7 +18,6 @@
   import EditCrossingMode from "./crossings/EditCrossingMode.svelte";
   import DrawRouteMode from "./draw_route/DrawRouteMode.svelte";
   import { finishRoute } from "./draw_route/stores";
-  import { getStyle } from "./google";
   import EditJATDetailMode from "./jat/EditJATDetailMode.svelte";
   import EditJATMode from "./jat/EditJATMode.svelte";
   import EditLinkMode from "./links/EditLinkMode.svelte";
@@ -24,7 +26,7 @@
   import NewPointMode from "./NewPointMode.svelte";
   import EditSideRoadMode from "./side_roads/EditSideRoadMode.svelte";
   import SideRoadQuestionsMode from "./side_roads/SideRoadQuestionsMode.svelte";
-  import { map, mode, state } from "./state";
+  import { basemap, map, mode, state } from "./state";
 
   $: window.localStorage.setItem("tmp-rcv2", JSON.stringify($state));
 
@@ -38,6 +40,15 @@
     mapDiv.innerHTML = "";
     mapDiv.appendChild($mapContents);
   }
+
+  let style: string | StyleSpecification | null = null;
+  onMount(async () => {
+    style = await getStyle($basemap);
+  });
+  async function changeStyle(newStyle: string) {
+    style = await getStyle(newStyle);
+  }
+  $: changeStyle($basemap);
 </script>
 
 <Layout>
@@ -46,7 +57,7 @@
   </div>
 
   <div slot="main" style="position:relative; width: 100%; height: 100vh;">
-    {#await getStyle(new URLSearchParams(window.location.search).get("google") || "") then style}
+    {#if style}
       <MapLibre
         {style}
         standardControls
@@ -106,6 +117,6 @@
 
         <ContextualLayers />
       </MapLibre>
-    {/await}
+    {/if}
   </div>
 </Layout>

@@ -41,6 +41,11 @@ type Mode =
   | { kind: "side-road-questions" }
   | { kind: "draw-route"; graph: OsGraph };
 export let mode: Writable<Mode> = writable({ kind: "neutral" });
+export let basemap = writable(
+  new URLSearchParams(window.location.search).has("google")
+    ? "google"
+    : "dataviz",
+);
 
 export function checkState(x: any): boolean {
   return (
