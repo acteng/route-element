@@ -90,8 +90,8 @@ impl OsGraph {
         serde_json::to_string(&self.get_side_road_crossings(full_path)).map_err(err_to_js)
     }
 
-    /// Takes a list of Nodes from the route snapper and returns a FeatureCollection of Points
-    /// for traffic signals along the route.
+    /// Takes a list of Nodes from the route snapper and returns a list of traffic signals along
+    /// the route.
     #[wasm_bindgen(js_name = getSignalizedJunctions)]
     pub fn get_signalized_junctions_wasm(&self, input: JsValue) -> Result<String, JsValue> {
         let full_path: Vec<RouteNode> = serde_wasm_bindgen::from_value(input)?;

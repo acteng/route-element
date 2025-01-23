@@ -77,13 +77,23 @@ export function finishRoute(graph: OsGraph) {
       for (let f of JSON.parse(
         graph.getSideRoadCrossings(feature.properties.full_path),
       ).features) {
-        x.crossings.push(blankCrossing(x.crossings.length, f.geometry.coordinates));
+        x.crossings.push(
+          blankCrossing(x.crossings.length, f.geometry.coordinates),
+        );
       }
 
-      for (let f of JSON.parse(
+      for (let junction of JSON.parse(
         graph.getSignalizedJunctions(feature.properties.full_path),
-      ).features) {
-        x.jats.push(blankJAT(x.jats.length, f.geometry.coordinates));
+      )) {
+        let jat = blankJAT(x.jats.length, coordToPt(junction.pt));
+        jat.properties.details.arms = junction.arms.map(([name, pt]) => {
+          return {
+            point: coordToPt(pt),
+            name,
+          };
+        });
+
+        x.jats.push(jat);
       }
 
       return x;
@@ -96,4 +106,8 @@ export function finishRoute(graph: OsGraph) {
 
   waypoints.set([]);
   mode.set({ kind: "neutral" });
+}
+
+function coordToPt(pt: any): [number, number] {
+  return [pt.x, pt.y];
 }

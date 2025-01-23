@@ -315,7 +315,7 @@ impl OsGraph {
                     node1,
                     node2,
                     geometry: link.geometry.clone(),
-                    name: None,
+                    name: Some(link.id.clone()),
 
                     // Isn't serialized, doesn't matter
                     length_meters: 0.0,
@@ -398,18 +398,22 @@ impl OsGraph {
         GeoJson::from(features)
     }
 
-    pub fn get_signalized_junctions(&self, full_path: Vec<RouteNode>) -> GeoJson {
-        let mut features = Vec::new();
+    pub fn get_signalized_junctions(&self, full_path: Vec<RouteNode>) -> Vec<SignalizedJunction> {
+        let mut junctions = Vec::new();
         for node in full_path {
             if let Some(x) = node.snapped {
-                if self.signalized_junctions.contains(&NodeID(x)) {
-                    features.push(Feature::from(Geometry::from(&Point::from(
-                        self.graph.nodes[x as usize],
-                    ))));
+                let node_id = NodeID(x);
+                if self.signalized_junctions.contains(&node_id) {
+                    let pt = self.graph.nodes[x as usize];
+                    let arms = self.links_per_node[&node_id].iter().map(|edge| make_arm(self, *edge, node_id)).collect();
+                    junctions.push(SignalizedJunction {
+                        pt,
+                        arms,
+                    });
                 }
             }
         }
-        GeoJson::from(features)
+        junctions
     }
 
     pub fn split_links(&self, full_ls: LineString, full_path: Vec<RouteNode>) -> GeoJson {
@@ -460,4 +464,24 @@ fn split_line_at_points(ls: &LineString, pts: &Vec<Coord>) -> Option<Vec<LineStr
         }
     }
     Some(result)
+}
+
+#[derive(Serialize)]
+pub struct SignalizedJunction {
+    pt: Coord,
+    arms: Vec<(String, Coord)>,
+}
+
+fn make_arm(graph: &OsGraph, edge: EdgeID, node: NodeID) -> (String, Coord) {
+    // Take a point a fixed distance away from the junction node
+    let dist_away: f64 = 10.0;
+    let edge = &graph.graph.edges[edge.0 as usize];
+    let len = edge.geometry.length::<Haversine>();
+    let distance = if edge.node1 == node {
+        dist_away.min(len)
+    } else {
+        (len - 10.0).max(0.0)
+    };
+    let pt = edge.geometry.line_interpolate_point(distance / len).unwrap();
+    (edge.name.clone().unwrap(), pt.into())
 }
