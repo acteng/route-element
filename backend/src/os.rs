@@ -3,9 +3,8 @@ use std::collections::{HashMap, HashSet};
 use anyhow::{bail, Context, Result};
 use flatgeobuf::{FeatureProperties, FgbFeature};
 use geo::{
-    BoundingRect, Closest, ClosestPoint, Coord, Distance, Haversine, Length, LineLocatePoint,
-    LineInterpolatePoint,
-    LineString, Point, Rect,
+    BoundingRect, Closest, ClosestPoint, Coord, Distance, Haversine, Length, LineInterpolatePoint,
+    LineLocatePoint, LineString, Point, Rect,
 };
 use geojson::{Feature, GeoJson, Geometry};
 use log::{error, info};
@@ -36,6 +35,7 @@ pub struct Link {
     #[serde(serialize_with = "geojson::ser::serialize_geometry")]
     geometry: LineString,
     id: String,
+    name: String,
     road_classification: String,
     start_node: String,
     end_node: String,
@@ -93,6 +93,7 @@ pub fn read_link(f: &FgbFeature) -> Result<Link> {
     Ok(Link {
         geometry: fgb::get_linestring(f)?,
         id: f.property("id")?,
+        name: f.property("name").ok().unwrap_or_else(String::new),
         road_classification: f.property("road_classification")?,
         start_node: f.property("start_node")?,
         end_node: f.property("end_node")?,
@@ -315,7 +316,7 @@ impl OsGraph {
                     node1,
                     node2,
                     geometry: link.geometry.clone(),
-                    name: Some(link.id.clone()),
+                    name: Some(link.name.clone()),
 
                     // Isn't serialized, doesn't matter
                     length_meters: 0.0,
@@ -388,7 +389,10 @@ impl OsGraph {
                         } else {
                             (len - 10.0).max(0.0)
                         };
-                        let pt = side_road.geometry.line_interpolate_point(distance / len).unwrap();
+                        let pt = side_road
+                            .geometry
+                            .line_interpolate_point(distance / len)
+                            .unwrap();
                         features.push(Feature::from(Geometry::from(&pt)));
                     }
                 }
@@ -405,11 +409,11 @@ impl OsGraph {
                 let node_id = NodeID(x);
                 if self.signalized_junctions.contains(&node_id) {
                     let pt = self.graph.nodes[x as usize];
-                    let arms = self.links_per_node[&node_id].iter().map(|edge| make_arm(self, *edge, node_id)).collect();
-                    junctions.push(SignalizedJunction {
-                        pt,
-                        arms,
-                    });
+                    let arms = self.links_per_node[&node_id]
+                        .iter()
+                        .map(|edge| make_arm(self, *edge, node_id))
+                        .collect();
+                    junctions.push(SignalizedJunction { pt, arms });
                 }
             }
         }
@@ -482,6 +486,9 @@ fn make_arm(graph: &OsGraph, edge: EdgeID, node: NodeID) -> (String, Coord) {
     } else {
         (len - 10.0).max(0.0)
     };
-    let pt = edge.geometry.line_interpolate_point(distance / len).unwrap();
+    let pt = edge
+        .geometry
+        .line_interpolate_point(distance / len)
+        .unwrap();
     (edge.name.clone().unwrap(), pt.into())
 }

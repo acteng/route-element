@@ -15,7 +15,7 @@ Same, but for `tmp_census_output_areas`
 Download the GB-wide gpkg from <https://osdatahub.os.uk/downloads/open/OpenRoads>. Create a FGB with links and nodes:
 
 ```
-ogr2ogr os_links.fgb oproad_gb.gpkg -t_srs EPSG:4326 -sql 'SELECT id, road_classification, start_node, end_node, geometry FROM road_link'
+ogr2ogr os_links.fgb oproad_gb.gpkg -t_srs EPSG:4326 -sql 'SELECT id, road_classification, start_node, end_node, name_1 as name, geometry FROM road_link'
 ogr2ogr os_nodes.fgb oproad_gb.gpkg -t_srs EPSG:4326 -sql 'SELECT id, geometry FROM road_node'
 ```
 
