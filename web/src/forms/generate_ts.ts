@@ -1,6 +1,4 @@
-import * as fs from "fs";
-import { argv } from "node:process";
-// TODO Normally we leave off the file extension, but ts-node config is somehow wrong
+import { crossingSchema } from "./infra_schema";
 import {
   isBarewordEnumCase,
   isCheckbox,
@@ -11,11 +9,12 @@ import {
   isStruct,
   isTextbox,
   type Field,
-} from "./types.js";
+} from "./types";
 
 // This script transforms a schema expressed in JSON into TypeScript types
 
-let schema = JSON.parse(fs.readFileSync(argv[2], { encoding: "utf8" }));
+//let schema = JSON.parse(fs.readFileSync(argv[2], { encoding: "utf8" }));
+let schema = crossingSchema();
 // Queue contains all of the types to generate
 let queue: Field[] = [schema];
 let seen: Set<string> = new Set();
@@ -29,7 +28,8 @@ function generate(field: Field) {
   if (seen.has(field.name)) {
     // We could also generate more detailed type names based on the nesting,
     // but this seems confusing
-    throw new Error(`The schema uses ${field.name} as a type name twice`);
+    console.warn(`The schema uses ${field.name} as a type name twice`);
+    return;
   }
   seen.add(field.name);
 
