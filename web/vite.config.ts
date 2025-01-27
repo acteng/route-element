@@ -9,7 +9,8 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(__dirname, "index.html"),
-        other: resolve(__dirname, "elements.html"),
+        element: resolve(__dirname, "elements.html"),
+        forms: resolve(__dirname, "forms.html"),
       },
     },
   },

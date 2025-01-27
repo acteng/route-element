@@ -12,7 +12,6 @@
   import { numId } from "./common";
   import CrossingSidebar from "./crossings/Sidebar.svelte";
   import { setupRouteTool } from "./draw_route/stores";
-  import ExperimentForm from "./ExperimentForm.svelte";
   import JATSidebar from "./jat/Sidebar.svelte";
   import LinkSidebar from "./links/Sidebar.svelte";
   import { checkState, gj, map, mode, state } from "./state";
@@ -41,8 +40,6 @@
   async function drawRoute() {
     await setupRouteTool($map!);
   }
-
-  let experimentForm = false;
 </script>
 
 <SplitComponent>
@@ -62,8 +59,6 @@
     </div>
 
     <button on:click={drawRoute}>Draw an entire route</button>
-
-    <button on:click={() => (experimentForm = true)}>Try new form</button>
 
     <hr />
 
@@ -157,8 +152,4 @@
 
     <input bind:this={fileInput} on:change={loadFile} type="file" />
   </Modal>
-{/if}
-
-{#if experimentForm}
-  <ExperimentForm on:close={() => (experimentForm = false)} />
 {/if}
