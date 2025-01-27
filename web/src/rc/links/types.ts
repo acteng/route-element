@@ -21,12 +21,6 @@ export function blankLink(idx: number): Link {
   };
 }
 
-// Per side road and priority junction: SA01
-// - raised table, continuous footway, radius
-// - and still a judgment
-// Per roundabout / signal junction: SA02
-// Derived from crossings and area: SA06, SA07, SA10
-
 interface Question {
   name: string;
   description: string;
