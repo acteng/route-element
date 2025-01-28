@@ -83,6 +83,15 @@ export function isCheckbox(x: Field): x is CheckboxInput {
 export function isEmptyStruct(x: Field): boolean {
   return "members" in x && x.members.length == 0;
 }
+// Only makes sense for structs or object enums
+// TODO Better types?
+export function getObjectTag(x: Field): string {
+  if (Object.keys(x).length == 1) {
+    return Object.keys(x)[0];
+  }
+  return "";
+  //throw new Error(`getObjectTag on ${JSON.stringify(x)} doesn't make sense`);
+}
 
 export function bool(name: string): CheckboxInput {
   return { name, type: "checkbox" };

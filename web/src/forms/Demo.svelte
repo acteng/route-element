@@ -2,6 +2,7 @@
   import "@picocss/pico/css/pico.jade.min.css";
   import Picker from "../rc/Picker.svelte";
   import AutogenerateForm from "./AutogenerateForm.svelte";
+  import DerivedInfra from "./DerivedInfra.svelte";
   import { infraSchema } from "./infra_schema";
   import type { Infrastructure } from "./infra_types";
   import { rcSchema } from "./rc_schema";
@@ -24,6 +25,7 @@
   />
 
   {#if schema == "infra"}
+    <DerivedInfra infra={infraProps} />
     <textarea rows="20">{JSON.stringify(infraProps, null, "  ")}</textarea>
   {:else}
     <textarea rows="20">{JSON.stringify(rcProps, null, "  ")}</textarea>
