@@ -14,13 +14,21 @@ export type Crossing =
 
 export interface zebra {
   context3?: context3;
+  crossing_details?: crossing_details;
+  vehicle_traffic?: vehicle_traffic;
+}
+
+export interface vehicle_traffic {
+  vehicle_85p_speed?: number;
+  vehicle_flow_daily?: number;
+  vehicle_flow_peak_hour?: number;
+}
+
+export interface crossing_details {
   has_pedestrian_refuge?: boolean;
   is_setback?: boolean;
   has_raised_table?: boolean;
   has_buildout?: boolean;
-  vehicle_85p_speed?: number;
-  vehicle_flow_daily?: number;
-  vehicle_flow_peak_hour?: number;
 }
 
 export type context3 = "at road junction" | "on road side" | standalone;
@@ -33,86 +41,51 @@ export interface standalone {
 
 export interface uncontrolled {
   context3?: context3;
-  has_pedestrian_refuge?: boolean;
-  is_setback?: boolean;
-  has_raised_table?: boolean;
-  has_buildout?: boolean;
-  vehicle_85p_speed?: number;
-  vehicle_flow_daily?: number;
-  vehicle_flow_peak_hour?: number;
+  crossing_details?: crossing_details;
+  vehicle_traffic?: vehicle_traffic;
 }
 
 export interface toucan {
   context?: context;
-  has_pedestrian_refuge?: boolean;
-  is_setback?: boolean;
-  has_raised_table?: boolean;
-  has_buildout?: boolean;
+  crossing_details?: crossing_details;
   crossing_speed?: number;
-  vehicle_85p_speed?: number;
-  vehicle_flow_daily?: number;
-  vehicle_flow_peak_hour?: number;
+  vehicle_traffic?: vehicle_traffic;
 }
 
 export type context = "at road junction" | "standalone";
 
 export interface puffin {
   context?: context;
-  has_pedestrian_refuge?: boolean;
-  is_setback?: boolean;
-  has_raised_table?: boolean;
-  has_buildout?: boolean;
+  crossing_details?: crossing_details;
   crossing_speed?: number;
-  vehicle_85p_speed?: number;
-  vehicle_flow_daily?: number;
-  vehicle_flow_peak_hour?: number;
+  vehicle_traffic?: vehicle_traffic;
 }
 
 export interface pelican {
   context?: context;
-  has_pedestrian_refuge?: boolean;
-  is_setback?: boolean;
-  has_raised_table?: boolean;
-  has_buildout?: boolean;
+  crossing_details?: crossing_details;
   crossing_speed?: number;
-  vehicle_85p_speed?: number;
-  vehicle_flow_daily?: number;
-  vehicle_flow_peak_hour?: number;
+  vehicle_traffic?: vehicle_traffic;
 }
 
 export interface pegasus {
   context?: context;
-  has_pedestrian_refuge?: boolean;
-  is_setback?: boolean;
-  has_raised_table?: boolean;
-  has_buildout?: boolean;
+  crossing_details?: crossing_details;
   crossing_speed?: number;
-  vehicle_85p_speed?: number;
-  vehicle_flow_daily?: number;
-  vehicle_flow_peak_hour?: number;
+  vehicle_traffic?: vehicle_traffic;
 }
 
 export interface ped_x {
   context?: context;
-  has_pedestrian_refuge?: boolean;
-  is_setback?: boolean;
-  has_raised_table?: boolean;
-  has_buildout?: boolean;
+  crossing_details?: crossing_details;
   crossing_speed?: number;
-  vehicle_85p_speed?: number;
-  vehicle_flow_daily?: number;
-  vehicle_flow_peak_hour?: number;
+  vehicle_traffic?: vehicle_traffic;
 }
 
 export interface Parallel {
   context2?: context2;
-  has_pedestrian_refuge?: boolean;
-  is_setback?: boolean;
-  has_raised_table?: boolean;
-  has_buildout?: boolean;
-  vehicle_85p_speed?: number;
-  vehicle_flow_daily?: number;
-  vehicle_flow_peak_hour?: number;
+  crossing_details?: crossing_details;
+  vehicle_traffic?: vehicle_traffic;
 }
 
 export type context2 = "at road junction" | standalone;

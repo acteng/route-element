@@ -36,18 +36,24 @@ export function crossingSchema(): Field {
     ],
   };
 
-  let checkboxes = [
-    bool("has_pedestrian_refuge"),
-    bool("is_setback"),
-    bool("has_raised_table"),
-    bool("has_buildout"),
-  ];
+  let checkboxes = {
+    name: "crossing_details",
+    members: [
+      bool("has_pedestrian_refuge"),
+      bool("is_setback"),
+      bool("has_raised_table"),
+      bool("has_buildout"),
+    ],
+  };
 
-  let vehicle = [
-    { name: "vehicle_85p_speed", type: "number" },
-    { name: "vehicle_flow_daily", type: "number" },
-    { name: "vehicle_flow_peak_hour", type: "number" },
-  ];
+  let vehicle = {
+    name: "vehicle_traffic",
+    members: [
+      { name: "vehicle_85p_speed", type: "number" },
+      { name: "vehicle_flow_daily", type: "number" },
+      { name: "vehicle_flow_peak_hour", type: "number" },
+    ],
+  };
 
   let commonMembers = [
     {
@@ -55,9 +61,9 @@ export function crossingSchema(): Field {
       // TODO dont need to know more questions?
       oneOf: ["at road junction", "standalone"],
     },
-    ...checkboxes,
+    checkboxes,
     { name: "crossing_speed", type: "number" },
-    ...vehicle,
+    vehicle,
   ];
 
   return {
@@ -66,7 +72,7 @@ export function crossingSchema(): Field {
       "Bridge",
       {
         name: "Parallel",
-        members: [twoContexts, ...checkboxes, ...vehicle],
+        members: [twoContexts, checkboxes, vehicle],
       },
       {
         name: "ped_x",
@@ -90,12 +96,12 @@ export function crossingSchema(): Field {
       },
       {
         name: "uncontrolled",
-        members: [threeContexts, ...checkboxes, ...vehicle],
+        members: [threeContexts, checkboxes, vehicle],
       },
       "Underpass",
       {
         name: "zebra",
-        members: [threeContexts, ...checkboxes, ...vehicle],
+        members: [threeContexts, checkboxes, vehicle],
       },
     ],
   };

@@ -19,8 +19,11 @@
 
   // Blank out initial values if needed
   let oneOfCase = "";
+  let readyOneOfCase = "";
   if (isStruct(spec)) {
-    value ||= {};
+    if (typeof value != "object") {
+      value = {};
+    }
     for (let member of spec.members) {
       if (isOneLiner(member) || isTextbox(member)) {
         value[member.name] ||= "";
@@ -38,6 +41,7 @@
       oneOfCase = value;
     } else {
       oneOfCase = Object.keys(value)[0] || "";
+      readyOneOfCase = oneOfCase;
     }
   }
 
@@ -47,6 +51,8 @@
   function structOneOf() {
     value = {};
     value[oneOfCase] = {};
+    // Don't recurse until value is reset, otherwise we bind a value below to something that gets wiped out
+    readyOneOfCase = oneOfCase;
   }
 </script>
 
@@ -92,7 +98,7 @@
           <br />
         </label>
 
-        {#if oneOfCase == x.name && typeof value == "object"}
+        {#if readyOneOfCase == x.name && typeof value == "object"}
           <div transition:slide={{ duration: 500 }}>
             <svelte:self spec={x} bind:value={value[x.name]} />
           </div>
