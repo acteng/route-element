@@ -1,7 +1,7 @@
 // This file is auto-generated; do not manually edit
 
 export type Crossing =
-  | "Bridge"
+  | Bridge
   | Parallel
   | ped_x
   | pegasus
@@ -16,6 +16,18 @@ export interface zebra {
   context3?: context3;
   crossing_details?: crossing_details;
   vehicle_traffic?: vehicle_traffic;
+  includes_placemaking?: includes_placemaking;
+}
+
+export interface includes_placemaking {
+  pocket_parks?: boolean;
+  new_social_spaces?: boolean;
+  greening?: boolean;
+  community_gardens?: boolean;
+  wayfinding?: boolean;
+  art?: boolean;
+  landscaping?: boolean;
+  other?: string;
 }
 
 export interface vehicle_traffic {
@@ -43,6 +55,7 @@ export interface uncontrolled {
   context3?: context3;
   crossing_details?: crossing_details;
   vehicle_traffic?: vehicle_traffic;
+  includes_placemaking?: includes_placemaking;
 }
 
 export interface toucan {
@@ -50,6 +63,7 @@ export interface toucan {
   crossing_details?: crossing_details;
   crossing_speed?: number;
   vehicle_traffic?: vehicle_traffic;
+  includes_placemaking?: includes_placemaking;
 }
 
 export type context = "at road junction" | "standalone";
@@ -59,6 +73,7 @@ export interface puffin {
   crossing_details?: crossing_details;
   crossing_speed?: number;
   vehicle_traffic?: vehicle_traffic;
+  includes_placemaking?: includes_placemaking;
 }
 
 export interface pelican {
@@ -66,6 +81,7 @@ export interface pelican {
   crossing_details?: crossing_details;
   crossing_speed?: number;
   vehicle_traffic?: vehicle_traffic;
+  includes_placemaking?: includes_placemaking;
 }
 
 export interface pegasus {
@@ -73,6 +89,7 @@ export interface pegasus {
   crossing_details?: crossing_details;
   crossing_speed?: number;
   vehicle_traffic?: vehicle_traffic;
+  includes_placemaking?: includes_placemaking;
 }
 
 export interface ped_x {
@@ -80,12 +97,18 @@ export interface ped_x {
   crossing_details?: crossing_details;
   crossing_speed?: number;
   vehicle_traffic?: vehicle_traffic;
+  includes_placemaking?: includes_placemaking;
 }
 
 export interface Parallel {
   context2?: context2;
   crossing_details?: crossing_details;
   vehicle_traffic?: vehicle_traffic;
+  includes_placemaking?: includes_placemaking;
 }
 
 export type context2 = "at road junction" | standalone;
+
+export interface Bridge {
+  includes_placemaking?: includes_placemaking;
+}

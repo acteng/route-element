@@ -5,7 +5,6 @@ function bool(name: string): CheckboxInput {
 }
 
 export function crossingSchema(): Field {
-  // TODO No placemaking questions
   let twoContexts = {
     name: "context2",
     oneOf: [
@@ -55,6 +54,20 @@ export function crossingSchema(): Field {
     ],
   };
 
+  let placemaking = {
+    name: "includes_placemaking",
+    members: [
+      bool("pocket_parks"),
+      bool("new_social_spaces"),
+      bool("greening"),
+      bool("community_gardens"),
+      bool("wayfinding"),
+      bool("art"),
+      bool("landscaping"),
+      { name: "other", type: "one-liner" },
+    ],
+  };
+
   let commonMembers = [
     {
       name: "context",
@@ -64,15 +77,19 @@ export function crossingSchema(): Field {
     checkboxes,
     { name: "crossing_speed", type: "number" },
     vehicle,
+    placemaking,
   ];
 
   return {
     name: "Crossing",
     oneOf: [
-      "Bridge",
+      {
+        name: "Bridge",
+        members: [placemaking],
+      },
       {
         name: "Parallel",
-        members: [twoContexts, checkboxes, vehicle],
+        members: [twoContexts, checkboxes, vehicle, placemaking],
       },
       {
         name: "ped_x",
@@ -96,12 +113,12 @@ export function crossingSchema(): Field {
       },
       {
         name: "uncontrolled",
-        members: [threeContexts, checkboxes, vehicle],
+        members: [threeContexts, checkboxes, vehicle, placemaking],
       },
       "Underpass",
       {
         name: "zebra",
-        members: [threeContexts, checkboxes, vehicle],
+        members: [threeContexts, checkboxes, vehicle, placemaking],
       },
     ],
   };
