@@ -7,9 +7,23 @@ function bool(name: string): CheckboxInput {
 export function infraSchema(): Field {
   return {
     name: "Infrastructure",
-    oneOf: [crossingSchema(), busStopSchema()],
+    oneOf: [crossingSchema(), busStopSchema(), linkSchema()],
   };
 }
+
+let placemaking = {
+  name: "includes_placemaking",
+  members: [
+    bool("pocket_parks"),
+    bool("new_social_spaces"),
+    bool("greening"),
+    bool("community_gardens"),
+    bool("wayfinding"),
+    bool("art"),
+    bool("landscaping"),
+    { name: "other", type: "one-liner" },
+  ],
+};
 
 function crossingSchema(): Enum {
   let twoContexts = {
@@ -58,20 +72,6 @@ function crossingSchema(): Enum {
       { name: "vehicle_85p_speed", type: "number" },
       { name: "vehicle_flow_daily", type: "number" },
       { name: "vehicle_flow_peak_hour", type: "number" },
-    ],
-  };
-
-  let placemaking = {
-    name: "includes_placemaking",
-    members: [
-      bool("pocket_parks"),
-      bool("new_social_spaces"),
-      bool("greening"),
-      bool("community_gardens"),
-      bool("wayfinding"),
-      bool("art"),
-      bool("landscaping"),
-      { name: "other", type: "one-liner" },
     ],
   };
 
@@ -139,6 +139,51 @@ function busStopSchema(): Struct {
         name: "interaction_between_pedestrians_cyclists",
         oneOf: ["bus stop boarder", "bus stop bypass", "shared use"],
       },
+    ],
+  };
+}
+
+function linkSchema(): Struct {
+  return {
+    name: "Link",
+    members: [
+      {
+        name: "protection_from_motor_vehicles",
+        oneOf: [
+          "advisory line",
+          "mandatory line",
+          "light segregation",
+          "full segregation",
+        ],
+      },
+      {
+        name: "separation_between_cyclists_pedestrians",
+        oneOf: [
+          "full physical separation",
+          "partial separation",
+          "no separation",
+        ],
+      },
+      {
+        name: "proximity_to_highway",
+        // TODO If off-road, then protection_from_motor_vehicles and side_of_road is irrelevant
+        oneOf: ["alongside", "off-road"],
+      },
+      {
+        name: "cyclist_direction",
+        oneOf: ["single direction", "bidirectional"],
+      },
+      {
+        name: "side_of_road",
+        oneOf: ["left", "right"],
+      },
+      bool("adequate_lighting"),
+      {
+        name: "surface_type",
+        oneOf: ["bound and sealed", "not treated"],
+      },
+      bool("has_barriers_causing_dismount"),
+      placemaking,
     ],
   };
 }

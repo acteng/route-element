@@ -1,6 +1,48 @@
 // This file is auto-generated; do not manually edit
 
-export type Infrastructure = Crossing | BusStop;
+export type Infrastructure = Crossing | BusStop | Link;
+
+export interface Link {
+  protection_from_motor_vehicles?: protection_from_motor_vehicles;
+  separation_between_cyclists_pedestrians?: separation_between_cyclists_pedestrians;
+  proximity_to_highway?: proximity_to_highway;
+  cyclist_direction?: cyclist_direction;
+  side_of_road?: side_of_road;
+  adequate_lighting?: boolean;
+  surface_type?: surface_type;
+  has_barriers_causing_dismount?: boolean;
+  includes_placemaking?: includes_placemaking;
+}
+
+export interface includes_placemaking {
+  pocket_parks?: boolean;
+  new_social_spaces?: boolean;
+  greening?: boolean;
+  community_gardens?: boolean;
+  wayfinding?: boolean;
+  art?: boolean;
+  landscaping?: boolean;
+  other?: string;
+}
+
+export type surface_type = "bound and sealed" | "not treated";
+
+export type side_of_road = "left" | "right";
+
+export type cyclist_direction = "single direction" | "bidirectional";
+
+export type proximity_to_highway = "alongside" | "off-road";
+
+export type separation_between_cyclists_pedestrians =
+  | "full physical separation"
+  | "partial separation"
+  | "no separation";
+
+export type protection_from_motor_vehicles =
+  | "advisory line"
+  | "mandatory line"
+  | "light segregation"
+  | "full segregation";
 
 export interface BusStop {
   interaction_between_pedestrians_cyclists?: interaction_between_pedestrians_cyclists;
@@ -28,17 +70,6 @@ export interface zebra {
   crossing_details?: crossing_details;
   vehicle_traffic?: vehicle_traffic;
   includes_placemaking?: includes_placemaking;
-}
-
-export interface includes_placemaking {
-  pocket_parks?: boolean;
-  new_social_spaces?: boolean;
-  greening?: boolean;
-  community_gardens?: boolean;
-  wayfinding?: boolean;
-  art?: boolean;
-  landscaping?: boolean;
-  other?: string;
 }
 
 export interface vehicle_traffic {
