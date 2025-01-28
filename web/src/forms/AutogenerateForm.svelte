@@ -26,6 +26,8 @@
         value[member.name] ||= "";
       } else if (isCheckbox(member)) {
         value[member.name] ||= false;
+      } else if (isNumber(member)) {
+        value[member.name] ||= 0;
       } else {
         value[member.name] ||= {};
       }
@@ -42,7 +44,7 @@
   function stringOneOf() {
     value = oneOfCase;
   }
-  function otherOneOf() {
+  function structOneOf() {
     value = {};
     value[oneOfCase] = {};
   }
@@ -80,10 +82,13 @@
           <input
             type="radio"
             bind:group={oneOfCase}
-            on:change={otherOneOf}
+            on:change={structOneOf}
             value={x.name}
           />
           {x.name}
+          {#if oneOfCase != x.name}
+            (...)
+          {/if}
           <br />
         </label>
 

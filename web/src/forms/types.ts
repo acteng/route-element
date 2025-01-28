@@ -22,9 +22,7 @@ export interface Enum {
   description?: string;
   oneOf: EnumCase[];
 }
-// TODO Revamping these
-export type EnumCase = Field | BarewordEnumCase;
-type BarewordEnumCase = string;
+export type EnumCase = Struct | string;
 
 // NumberInput specifies a numeric property
 export interface NumberInput {
@@ -60,7 +58,7 @@ export function isStruct(x: Field): x is Struct {
 export function isEnum(x: Field): x is Enum {
   return "oneOf" in x;
 }
-export function isBarewordEnumCase(x: EnumCase): x is BarewordEnumCase {
+export function isBarewordEnumCase(x: EnumCase): x is string {
   return typeof x == "string";
 }
 export function isNumber(x: Field): x is NumberInput {
