@@ -1,8 +1,4 @@
-import type { CheckboxInput, Field, Struct } from "./types";
-
-function bool(name: string): CheckboxInput {
-  return { name, type: "checkbox" };
-}
+import { bool, emptyStruct, type Field, type Struct } from "./types";
 
 export function rcSchema(): Field {
   return {
@@ -38,7 +34,7 @@ function busStopSchema(): Struct {
       {
         // TODO Conflates interaction with pedestrians and traffic?
         name: "treatment",
-        oneOf: ["none", "border", "bypass"],
+        cases: ["none", "border", "bypass"],
       },
       // TODO peak bus frequency -- but can't find in RC
     ],
@@ -60,15 +56,15 @@ function linkSchema(): Struct {
         members: [
           {
             name: "vehicles_per_day",
-            oneOf: ["<2500", "2500-8000", ">8000"],
+            cases: ["<2500", "2500-8000", ">8000"],
           },
           {
             name: "peak_vehicles_per_hour",
-            oneOf: ["<200", "200-500", "500-1000", ">1000"],
+            cases: ["<200", "200-500", "500-1000", ">1000"],
           },
           {
             name: "percent_hgvs",
-            oneOf: ["<2%", "2-5%", ">5%"],
+            cases: ["<2%", "2-5%", ">5%"],
           },
           {
             name: "speed_85_percentile",
@@ -88,17 +84,17 @@ function linkSchema(): Struct {
                 name: "traffic_reduction_or_quiet_route",
                 members: noInfrastrutureContext,
               },
-              "advisory lane",
-              "mandatory lane",
-              "light",
-              "stepped track",
-              "full",
-              "off-road",
+              emptyStruct("advisory_lane"),
+              emptyStruct("mandatory_lane"),
+              emptyStruct("light"),
+              emptyStruct("stepped_track"),
+              emptyStruct("full"),
+              emptyStruct("off_road"),
             ],
           },
           {
             name: "cyclist_direction",
-            oneOf: ["single", "bidirectional"],
+            cases: ["single", "bidirectional"],
           },
           {
             // TODO average, min, or max?
@@ -108,7 +104,7 @@ function linkSchema(): Struct {
           },
           {
             name: "parking_or_loading",
-            oneOf: ["none", "yes without 0.5, buffer", "yes with 0.5m buffer"],
+            cases: ["none", "yes without 0.5, buffer", "yes with 0.5m buffer"],
           },
         ],
       },

@@ -2,10 +2,10 @@ import * as fs from "fs";
 import { infraSchema } from "./infra_schema";
 import { rcSchema } from "./rc_schema";
 import {
-  isBarewordEnumCase,
+  isBarewordEnum,
   isCheckbox,
-  isEnum,
   isNumber,
+  isObjectEnum,
   isOneLiner,
   isStruct,
   isTextbox,
@@ -51,25 +51,23 @@ function generate(field: Field, queue: Field[], seen: Set<string>) {
         out += `  ${member.name}?: string;\n`;
       } else if (isCheckbox(member)) {
         out += `  ${member.name}?: boolean;\n`;
-      } else if (isStruct(member) || isEnum(member)) {
-        // TODO If it's an enum with all string cases, do we want another
-        // explicitly named type or not?
+      } else if (isStruct(member) || isObjectEnum(member)) {
         queue.push(member);
         out += `  ${member.name}?: ${member.name};\n`;
+      } else if (isBarewordEnum(member)) {
+        // Don't make a new named type for this
+        let cases = member.cases.map((c) => `"${c}"`);
+        out += `  ${member.name}?: ${cases.join(" | ")};\n`;
       } else {
         throw new Error(`Unknown field type ${member}`);
       }
     }
     out += `}\n\n`;
-  } else if (isEnum(field)) {
+  } else if (isObjectEnum(field)) {
     let cases = [];
     for (let x of field.oneOf) {
-      if (isBarewordEnumCase(x)) {
-        cases.push(`"${x}"`);
-      } else {
-        cases.push(x.name);
-        queue.push(x);
-      }
+      cases.push(x.name);
+      queue.push(x);
     }
     out += `export type ${field.name} = ${cases.join(" | ")};\n\n`;
   } else {

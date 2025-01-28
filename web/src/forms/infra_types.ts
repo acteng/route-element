@@ -19,10 +19,10 @@ export type kind =
   | walking_wheeling_only_route;
 
 export interface walking_wheeling_only_route {
-  proximity_to_highway?: proximity_to_highway;
+  proximity_to_highway?: "alongside" | "off-road";
   adequate_lighting?: boolean;
-  surface_type?: surface_type;
-  side_of_road?: side_of_road;
+  surface_type?: "bound and sealed" | "not treated";
+  side_of_road?: "left" | "right";
   includes_placemaking?: includes_placemaking;
 }
 
@@ -37,78 +37,66 @@ export interface includes_placemaking {
   other?: string;
 }
 
-export type side_of_road = "left" | "right";
-
-export type surface_type = "bound and sealed" | "not treated";
-
-export type proximity_to_highway = "alongside" | "off-road";
-
 export interface stepped_cycletrack_along_road {
-  cyclist_direction?: cyclist_direction;
+  cyclist_direction?: "single direction" | "bidirectional";
   adequate_lighting?: boolean;
-  surface_type?: surface_type;
+  surface_type?: "bound and sealed" | "not treated";
   has_barriers_causing_dismount?: boolean;
-  side_of_road?: side_of_road;
+  side_of_road?: "left" | "right";
   includes_placemaking?: includes_placemaking;
 }
-
-export type cyclist_direction = "single direction" | "bidirectional";
 
 export interface shared_use_route {
-  separation_between_cyclists_pedestrians?: separation_between_cyclists_pedestrians;
-  proximity_to_highway?: proximity_to_highway;
-  cyclist_direction?: cyclist_direction;
+  separation_between_cyclists_pedestrians?:
+    | "partial separation"
+    | "no separation";
+  proximity_to_highway?: "alongside" | "off-road";
+  cyclist_direction?: "single direction" | "bidirectional";
   adequate_lighting?: boolean;
-  surface_type?: surface_type;
+  surface_type?: "bound and sealed" | "not treated";
   has_barriers_causing_dismount?: boolean;
-  side_of_road?: side_of_road;
+  side_of_road?: "left" | "right";
   includes_placemaking?: includes_placemaking;
 }
 
-export type separation_between_cyclists_pedestrians =
-  | "partial separation"
-  | "no separation";
-
 export interface quiet_route {
-  separation_between_cyclists_pedestrians?: separation_between_cyclists_pedestrians;
-  cyclist_direction?: cyclist_direction;
+  separation_between_cyclists_pedestrians?:
+    | "full physical separation"
+    | "no separation";
+  cyclist_direction?: "single direction" | "bidirectional";
   adequate_lighting?: boolean;
   has_barriers_causing_dismount?: boolean;
   includes_placemaking?: includes_placemaking;
 }
 
 export interface pavement_widening {
-  side_of_road?: side_of_road;
+  side_of_road?: "left" | "right";
   includes_placemaking?: includes_placemaking;
 }
 
 export interface no_active_travel_provision {
-  side_of_road?: side_of_road;
+  side_of_road?: "left" | "right";
 }
 
 export interface shared_bus_lane {
-  side_of_road?: side_of_road;
+  side_of_road?: "left" | "right";
   adequate_lighting?: boolean;
   includes_placemaking?: includes_placemaking;
 }
 
 export interface cycle_lane_on_road {
-  protection_from_motor_vehicles?: protection_from_motor_vehicles;
-  side_of_road?: side_of_road;
+  protection_from_motor_vehicles?: "advisory line" | "mandatory line";
+  side_of_road?: "left" | "right";
   adequate_lighting?: boolean;
   includes_placemaking?: includes_placemaking;
 }
 
-export type protection_from_motor_vehicles = "advisory line" | "mandatory line";
-
 export interface BusStop {
-  interaction_between_pedestrians_cyclists?: interaction_between_pedestrians_cyclists;
+  interaction_between_pedestrians_cyclists?:
+    | "bus stop boarder"
+    | "bus stop bypass"
+    | "shared use";
 }
-
-export type interaction_between_pedestrians_cyclists =
-  | "bus stop boarder"
-  | "bus stop bypass"
-  | "shared use";
 
 export type Crossing =
   | Bridge
@@ -119,7 +107,7 @@ export type Crossing =
   | puffin
   | toucan
   | uncontrolled
-  | "Underpass"
+  | Underpass
   | zebra;
 
 export interface zebra {
@@ -142,13 +130,19 @@ export interface crossing_details {
   has_buildout?: boolean;
 }
 
-export type context3 = "at road junction" | "on road side" | standalone;
+export type context3 = at_road_junction | on_road_side | standalone;
 
 export interface standalone {
   fulfills_single_movement_desire_line?: boolean;
   fulfills_routing_desire_line?: boolean;
   provides_connection_to_bus_stop?: boolean;
 }
+
+export interface on_road_side {}
+
+export interface at_road_junction {}
+
+export interface Underpass {}
 
 export interface uncontrolled {
   context3?: context3;
@@ -158,17 +152,15 @@ export interface uncontrolled {
 }
 
 export interface toucan {
-  context?: context;
+  context?: "at road junction" | "standalone";
   crossing_details?: crossing_details;
   crossing_speed?: number;
   vehicle_traffic?: vehicle_traffic;
   includes_placemaking?: includes_placemaking;
 }
 
-export type context = "at road junction" | "standalone";
-
 export interface puffin {
-  context?: context;
+  context?: "at road junction" | "standalone";
   crossing_details?: crossing_details;
   crossing_speed?: number;
   vehicle_traffic?: vehicle_traffic;
@@ -176,7 +168,7 @@ export interface puffin {
 }
 
 export interface pelican {
-  context?: context;
+  context?: "at road junction" | "standalone";
   crossing_details?: crossing_details;
   crossing_speed?: number;
   vehicle_traffic?: vehicle_traffic;
@@ -184,7 +176,7 @@ export interface pelican {
 }
 
 export interface pegasus {
-  context?: context;
+  context?: "at road junction" | "standalone";
   crossing_details?: crossing_details;
   crossing_speed?: number;
   vehicle_traffic?: vehicle_traffic;
@@ -192,7 +184,7 @@ export interface pegasus {
 }
 
 export interface ped_x {
-  context?: context;
+  context?: "at road junction" | "standalone";
   crossing_details?: crossing_details;
   crossing_speed?: number;
   vehicle_traffic?: vehicle_traffic;
@@ -206,7 +198,7 @@ export interface Parallel {
   includes_placemaking?: includes_placemaking;
 }
 
-export type context2 = "at road junction" | standalone;
+export type context2 = at_road_junction | standalone;
 
 export interface Bridge {
   includes_placemaking?: includes_placemaking;

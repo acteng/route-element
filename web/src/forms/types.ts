@@ -3,7 +3,8 @@
 // A Field is one property collected by form about an intervention
 export type Field =
   | Struct
-  | Enum
+  | ObjectEnum
+  | BarewordEnum
   | NumberInput
   | OneLineTextInput
   | TextboxInput
@@ -16,13 +17,19 @@ export interface Struct {
   members: Field[];
 }
 
-// An Enum expresses exactly one case must be set
-export interface Enum {
+// An ObjectEnum expresses exactly one case (each an object or another enum) must be set
+export interface ObjectEnum {
   name: string;
   description?: string;
-  oneOf: EnumCase[];
+  oneOf: (Struct | ObjectEnum)[];
 }
-export type EnumCase = Struct | Enum | string;
+
+// A BarewordEnum expresses exactly one case (each just a string) must be set
+export interface BarewordEnum {
+  name: string;
+  description?: string;
+  cases: string[];
+}
 
 // NumberInput specifies a numeric property
 export interface NumberInput {
@@ -55,11 +62,11 @@ export interface CheckboxInput {
 export function isStruct(x: Field): x is Struct {
   return "members" in x;
 }
-export function isEnum(x: Field): x is Enum {
+export function isObjectEnum(x: Field): x is ObjectEnum {
   return "oneOf" in x;
 }
-export function isBarewordEnumCase(x: EnumCase): x is string {
-  return typeof x == "string";
+export function isBarewordEnum(x: Field): x is BarewordEnum {
+  return "cases" in x;
 }
 export function isNumber(x: Field): x is NumberInput {
   return "type" in x && x.type == "number";
@@ -72,4 +79,11 @@ export function isTextbox(x: Field): x is TextboxInput {
 }
 export function isCheckbox(x: Field): x is CheckboxInput {
   return "type" in x && x.type == "checkbox";
+}
+
+export function bool(name: string): CheckboxInput {
+  return { name, type: "checkbox" };
+}
+export function emptyStruct(name: string): Struct {
+  return { name, members: [] };
 }

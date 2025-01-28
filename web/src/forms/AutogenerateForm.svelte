@@ -2,10 +2,10 @@
   import humanizeString from "humanize-string";
   import { slide } from "svelte/transition";
   import {
-    isBarewordEnumCase,
+    isBarewordEnum,
     isCheckbox,
-    isEnum,
     isNumber,
+    isObjectEnum,
     isOneLiner,
     isStruct,
     isTextbox,
@@ -36,20 +36,14 @@
         value[member.name] ||= {};
       }
     }
-  } else if (isEnum(spec)) {
-    // TODO If they're all barewords, then a string
+  } else if (isObjectEnum(spec)) {
     value ||= {};
-    if (isBarewordEnumCase(value)) {
-      oneOfCase = value;
-    } else {
-      oneOfCase = Object.keys(value)[0] || "";
-      readyOneOfCase = oneOfCase;
-    }
+    oneOfCase = Object.keys(value)[0] || "";
+    readyOneOfCase = oneOfCase;
+  } else if (isBarewordEnum(spec)) {
+    value ||= "";
   }
 
-  function stringOneOf() {
-    value = oneOfCase;
-  }
   function structOneOf() {
     value = {};
     value[oneOfCase] = {};
@@ -69,43 +63,46 @@
       <svelte:self spec={x} bind:value={value[x.name]} />
     {/each}
   </div>
-{:else if isEnum(spec)}
+{:else if isObjectEnum(spec)}
   <div>
     <h4>{humanizeString(spec.name)}</h4>
 
     {#each spec.oneOf as x}
-      {#if isBarewordEnumCase(x)}
-        <label>
-          <input
-            type="radio"
-            bind:group={oneOfCase}
-            on:change={stringOneOf}
-            value={x}
-          />
-          {x}
-          <br />
-        </label>
-      {:else}
-        <label>
-          <input
-            type="radio"
-            bind:group={oneOfCase}
-            on:change={structOneOf}
-            value={x.name}
-          />
-          {x.name}
-          {#if oneOfCase != x.name}
-            (...)
-          {/if}
-          <br />
-        </label>
-
-        {#if readyOneOfCase == x.name && typeof value == "object"}
-          <div transition:slide={{ duration: 500 }}>
-            <svelte:self spec={x} bind:value={value[x.name]} />
-          </div>
+      <label>
+        <input
+          type="radio"
+          bind:group={oneOfCase}
+          on:change={structOneOf}
+          value={x.name}
+        />
+        {x.name}
+        {#if oneOfCase != x.name}
+          (...)
         {/if}
+        <br />
+      </label>
+
+      {#if readyOneOfCase == x.name && typeof value == "object"}
+        <div transition:slide={{ duration: 500 }}>
+          <svelte:self spec={x} bind:value={value[x.name]} />
+        </div>
       {/if}
+    {/each}
+  </div>
+{:else if isBarewordEnum(spec)}
+  <div>
+    <h4>{humanizeString(spec.name)}</h4>
+
+    {#each spec.cases as x}
+      <label>
+        <input
+          type="radio"
+          bind:group={value}
+          value={x}
+        />
+        {x}
+        <br />
+      </label>
     {/each}
   </div>
 {:else if isNumber(spec)}

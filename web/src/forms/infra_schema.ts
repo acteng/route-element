@@ -1,8 +1,10 @@
-import type { CheckboxInput, Enum, Field, Struct } from "./types";
-
-function bool(name: string): CheckboxInput {
-  return { name, type: "checkbox" };
-}
+import {
+  bool,
+  emptyStruct,
+  type Field,
+  type ObjectEnum,
+  type Struct,
+} from "./types";
 
 export function infraSchema(): Field {
   return {
@@ -25,11 +27,11 @@ let placemaking = {
   ],
 };
 
-function crossingSchema(): Enum {
+function crossingSchema(): ObjectEnum {
   let twoContexts = {
     name: "context2",
     oneOf: [
-      "at road junction",
+      emptyStruct("at_road_junction"),
       {
         name: "standalone",
         members: [
@@ -43,8 +45,8 @@ function crossingSchema(): Enum {
   let threeContexts = {
     name: "context3",
     oneOf: [
-      "at road junction",
-      "on road side",
+      emptyStruct("at_road_junction"),
+      emptyStruct("on_road_side"),
       {
         name: "standalone",
         members: [
@@ -79,7 +81,7 @@ function crossingSchema(): Enum {
     {
       name: "context",
       // TODO dont need to know more questions?
-      oneOf: ["at road junction", "standalone"],
+      cases: ["at road junction", "standalone"],
     },
     checkboxes,
     { name: "crossing_speed", type: "number" },
@@ -122,7 +124,7 @@ function crossingSchema(): Enum {
         name: "uncontrolled",
         members: [threeContexts, checkboxes, vehicle, placemaking],
       },
-      "Underpass",
+      emptyStruct("Underpass"),
       {
         name: "zebra",
         members: [threeContexts, checkboxes, vehicle, placemaking],
@@ -137,7 +139,7 @@ function busStopSchema(): Struct {
     members: [
       {
         name: "interaction_between_pedestrians_cyclists",
-        oneOf: ["bus stop boarder", "bus stop bypass", "shared use"],
+        cases: ["bus stop boarder", "bus stop bypass", "shared use"],
       },
     ],
   };
@@ -146,21 +148,21 @@ function busStopSchema(): Struct {
 function linkSchema(): Struct {
   let sideOfRoad = {
     name: "side_of_road",
-    oneOf: ["left", "right"],
+    cases: ["left", "right"],
   };
   let direction = {
     name: "cyclist_direction",
-    oneOf: ["single direction", "bidirectional"],
+    cases: ["single direction", "bidirectional"],
   };
   let surfaceType = {
     name: "surface_type",
-    oneOf: ["bound and sealed", "not treated"],
+    cases: ["bound and sealed", "not treated"],
   };
   let lighting = bool("adequate_lighting");
   let dismount = bool("has_barriers_causing_dismount");
   let proximityToHighway = {
     name: "proximity_to_highway",
-    oneOf: ["alongside", "off-road"],
+    cases: ["alongside", "off-road"],
   };
 
   return {
@@ -177,7 +179,7 @@ function linkSchema(): Struct {
               {
                 // TODO light and full cases aren't possible for a lane
                 name: "protection_from_motor_vehicles",
-                oneOf: ["advisory line", "mandatory line"],
+                cases: ["advisory line", "mandatory line"],
               },
               sideOfRoad,
               lighting,
@@ -202,7 +204,7 @@ function linkSchema(): Struct {
               {
                 name: "separation_between_cyclists_pedestrians",
                 // TODO partial separation with pedestrians not possible for this case?
-                oneOf: ["full physical separation", "no separation"],
+                cases: ["full physical separation", "no separation"],
               },
               direction,
               lighting,
@@ -215,7 +217,7 @@ function linkSchema(): Struct {
             members: [
               {
                 name: "separation_between_cyclists_pedestrians",
-                oneOf: ["partial separation", "no separation"],
+                cases: ["partial separation", "no separation"],
               },
               proximityToHighway,
               direction,
