@@ -3,14 +3,26 @@
 export type Infrastructure = Crossing | BusStop | Link;
 
 export interface Link {
-  protection_from_motor_vehicles?: protection_from_motor_vehicles;
-  separation_between_cyclists_pedestrians?: separation_between_cyclists_pedestrians;
+  length?: number;
+  width?: number;
+  kind?: kind;
+}
+
+export type kind =
+  | cycle_lane_on_road
+  | shared_bus_lane
+  | no_active_travel_provision
+  | pavement_widening
+  | quiet_route
+  | shared_use_route
+  | stepped_cycletrack_along_road
+  | walking_wheeling_only_route;
+
+export interface walking_wheeling_only_route {
   proximity_to_highway?: proximity_to_highway;
-  cyclist_direction?: cyclist_direction;
-  side_of_road?: side_of_road;
   adequate_lighting?: boolean;
   surface_type?: surface_type;
-  has_barriers_causing_dismount?: boolean;
+  side_of_road?: side_of_road;
   includes_placemaking?: includes_placemaking;
 }
 
@@ -25,24 +37,69 @@ export interface includes_placemaking {
   other?: string;
 }
 
-export type surface_type = "bound and sealed" | "not treated";
-
 export type side_of_road = "left" | "right";
 
-export type cyclist_direction = "single direction" | "bidirectional";
+export type surface_type = "bound and sealed" | "not treated";
 
 export type proximity_to_highway = "alongside" | "off-road";
 
+export interface stepped_cycletrack_along_road {
+  cyclist_direction?: cyclist_direction;
+  adequate_lighting?: boolean;
+  surface_type?: surface_type;
+  has_barriers_causing_dismount?: boolean;
+  side_of_road?: side_of_road;
+  includes_placemaking?: includes_placemaking;
+}
+
+export type cyclist_direction = "single direction" | "bidirectional";
+
+export interface shared_use_route {
+  separation_between_cyclists_pedestrians?: separation_between_cyclists_pedestrians;
+  proximity_to_highway?: proximity_to_highway;
+  cyclist_direction?: cyclist_direction;
+  adequate_lighting?: boolean;
+  surface_type?: surface_type;
+  has_barriers_causing_dismount?: boolean;
+  side_of_road?: side_of_road;
+  includes_placemaking?: includes_placemaking;
+}
+
 export type separation_between_cyclists_pedestrians =
-  | "full physical separation"
   | "partial separation"
   | "no separation";
 
-export type protection_from_motor_vehicles =
-  | "advisory line"
-  | "mandatory line"
-  | "light segregation"
-  | "full segregation";
+export interface quiet_route {
+  separation_between_cyclists_pedestrians?: separation_between_cyclists_pedestrians;
+  cyclist_direction?: cyclist_direction;
+  adequate_lighting?: boolean;
+  has_barriers_causing_dismount?: boolean;
+  includes_placemaking?: includes_placemaking;
+}
+
+export interface pavement_widening {
+  side_of_road?: side_of_road;
+  includes_placemaking?: includes_placemaking;
+}
+
+export interface no_active_travel_provision {
+  side_of_road?: side_of_road;
+}
+
+export interface shared_bus_lane {
+  side_of_road?: side_of_road;
+  adequate_lighting?: boolean;
+  includes_placemaking?: includes_placemaking;
+}
+
+export interface cycle_lane_on_road {
+  protection_from_motor_vehicles?: protection_from_motor_vehicles;
+  side_of_road?: side_of_road;
+  adequate_lighting?: boolean;
+  includes_placemaking?: includes_placemaking;
+}
+
+export type protection_from_motor_vehicles = "advisory line" | "mandatory line";
 
 export interface BusStop {
   interaction_between_pedestrians_cyclists?: interaction_between_pedestrians_cyclists;

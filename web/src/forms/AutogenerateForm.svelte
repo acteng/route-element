@@ -32,10 +32,12 @@
       } else if (isNumber(member)) {
         value[member.name] ||= 0;
       } else {
+        // TODO If they're all barewords, then a string
         value[member.name] ||= {};
       }
     }
   } else if (isEnum(spec)) {
+    // TODO If they're all barewords, then a string
     value ||= {};
     if (isBarewordEnumCase(value)) {
       oneOfCase = value;

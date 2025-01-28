@@ -144,46 +144,112 @@ function busStopSchema(): Struct {
 }
 
 function linkSchema(): Struct {
+  let sideOfRoad = {
+    name: "side_of_road",
+    oneOf: ["left", "right"],
+  };
+  let direction = {
+    name: "cyclist_direction",
+    oneOf: ["single direction", "bidirectional"],
+  };
+  let surfaceType = {
+    name: "surface_type",
+    oneOf: ["bound and sealed", "not treated"],
+  };
+  let lighting = bool("adequate_lighting");
+  let dismount = bool("has_barriers_causing_dismount");
+  let proximityToHighway = {
+    name: "proximity_to_highway",
+    oneOf: ["alongside", "off-road"],
+  };
+
   return {
     name: "Link",
     members: [
+      { name: "length", type: "number" },
+      { name: "width", type: "number" },
       {
-        name: "protection_from_motor_vehicles",
+        name: "kind",
         oneOf: [
-          "advisory line",
-          "mandatory line",
-          "light segregation",
-          "full segregation",
+          {
+            name: "cycle_lane_on_road",
+            members: [
+              {
+                // TODO light and full cases aren't possible for a lane
+                name: "protection_from_motor_vehicles",
+                oneOf: ["advisory line", "mandatory line"],
+              },
+              sideOfRoad,
+              lighting,
+              placemaking,
+            ],
+          },
+          {
+            name: "shared_bus_lane",
+            members: [sideOfRoad, lighting, placemaking],
+          },
+          {
+            name: "no_active_travel_provision",
+            members: [sideOfRoad],
+          },
+          {
+            name: "pavement_widening",
+            members: [sideOfRoad, placemaking],
+          },
+          {
+            name: "quiet_route",
+            members: [
+              {
+                name: "separation_between_cyclists_pedestrians",
+                // TODO partial separation with pedestrians not possible for this case?
+                oneOf: ["full physical separation", "no separation"],
+              },
+              direction,
+              lighting,
+              dismount,
+              placemaking,
+            ],
+          },
+          {
+            name: "shared_use_route",
+            members: [
+              {
+                name: "separation_between_cyclists_pedestrians",
+                oneOf: ["partial separation", "no separation"],
+              },
+              proximityToHighway,
+              direction,
+              lighting,
+              surfaceType,
+              dismount,
+              sideOfRoad,
+              placemaking,
+            ],
+          },
+          {
+            name: "stepped_cycletrack_along_road",
+            members: [
+              direction,
+              lighting,
+              surfaceType,
+              // TODO dismount relevant here?
+              dismount,
+              sideOfRoad,
+              placemaking,
+            ],
+          },
+          {
+            name: "walking_wheeling_only_route",
+            members: [
+              proximityToHighway,
+              lighting,
+              surfaceType,
+              sideOfRoad,
+              placemaking,
+            ],
+          },
         ],
       },
-      {
-        name: "separation_between_cyclists_pedestrians",
-        oneOf: [
-          "full physical separation",
-          "partial separation",
-          "no separation",
-        ],
-      },
-      {
-        name: "proximity_to_highway",
-        // TODO If off-road, then protection_from_motor_vehicles and side_of_road is irrelevant
-        oneOf: ["alongside", "off-road"],
-      },
-      {
-        name: "cyclist_direction",
-        oneOf: ["single direction", "bidirectional"],
-      },
-      {
-        name: "side_of_road",
-        oneOf: ["left", "right"],
-      },
-      bool("adequate_lighting"),
-      {
-        name: "surface_type",
-        oneOf: ["bound and sealed", "not treated"],
-      },
-      bool("has_barriers_causing_dismount"),
-      placemaking,
     ],
   };
 }
