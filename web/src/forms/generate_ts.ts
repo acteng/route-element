@@ -1,4 +1,6 @@
+import * as fs from "fs";
 import { infraSchema } from "./infra_schema";
+import { rcSchema } from "./rc_schema";
 import {
   isBarewordEnumCase,
   isCheckbox,
@@ -10,20 +12,28 @@ import {
   type Field,
 } from "./types";
 
-// This script transforms a schema expressed in JSON into TypeScript types
+// TODO Don't mind the global state...
+let out = "";
 
 //let schema = JSON.parse(fs.readFileSync(argv[2], { encoding: "utf8" }));
-let schema = infraSchema();
-// Queue contains all of the types to generate
-let queue: Field[] = [schema];
-let seen: Set<string> = new Set();
+writeSchema(infraSchema(), "src/forms/infra_types.ts");
+writeSchema(rcSchema(), "src/forms/rc_types.ts");
 
-console.log(`// This file is auto-generated; do not manually edit\n`);
-while (queue.length > 0) {
-  generate(queue.pop()!);
+function writeSchema(schema: Field, outPath: string) {
+  // Queue contains all of the types to generate
+  let queue: Field[] = [schema];
+  let seen: Set<string> = new Set();
+
+  // Reset
+  out = `// This file is auto-generated; do not manually edit\n\n`;
+  while (queue.length > 0) {
+    generate(queue.pop()!, queue, seen);
+  }
+
+  fs.writeFileSync(outPath, out);
 }
 
-function generate(field: Field) {
+function generate(field: Field, queue: Field[], seen: Set<string>) {
   if (seen.has(field.name)) {
     // We could also generate more detailed type names based on the nesting,
     // but this seems confusing
@@ -33,24 +43,24 @@ function generate(field: Field) {
   seen.add(field.name);
 
   if (isStruct(field)) {
-    console.log(`export interface ${field.name} {`);
+    out += `export interface ${field.name} {\n`;
     for (let member of field.members) {
       if (isNumber(member)) {
-        console.log(`  ${member.name}?: number;`);
+        out += `  ${member.name}?: number;\n`;
       } else if (isOneLiner(member) || isTextbox(member)) {
-        console.log(`  ${member.name}?: string;`);
+        out += `  ${member.name}?: string;\n`;
       } else if (isCheckbox(member)) {
-        console.log(`  ${member.name}?: boolean;`);
+        out += `  ${member.name}?: boolean;\n`;
       } else if (isStruct(member) || isEnum(member)) {
         // TODO If it's an enum with all string cases, do we want another
         // explicitly named type or not?
         queue.push(member);
-        console.log(`  ${member.name}?: ${member.name};`);
+        out += `  ${member.name}?: ${member.name};\n`;
       } else {
         throw new Error(`Unknown field type ${member}`);
       }
     }
-    console.log(`}\n`);
+    out += `}\n\n`;
   } else if (isEnum(field)) {
     let cases = [];
     for (let x of field.oneOf) {
@@ -61,7 +71,7 @@ function generate(field: Field) {
         queue.push(x);
       }
     }
-    console.log(`export type ${field.name} = ${cases.join(" | ")};\n`);
+    out += `export type ${field.name} = ${cases.join(" | ")};\n\n`;
   } else {
     throw new Error(`Unknown field ${JSON.stringify(field)}`);
   }

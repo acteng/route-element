@@ -4,7 +4,7 @@ function bool(name: string): CheckboxInput {
   return { name, type: "checkbox" };
 }
 
-export function infraSchema(): Field {
+export function rcSchema(): Field {
   return {
     name: "Infrastructure",
     oneOf: [crossingSchema(), busStopSchema(), linkSchema()],
@@ -68,7 +68,7 @@ function linkSchema(): Struct {
           },
           {
             name: "percent_hgvs",
-            oneOf: ["<2%, 2-5%, >5%"],
+            oneOf: ["<2%", "2-5%", ">5%"],
           },
           {
             name: "speed_85_percentile",
@@ -85,7 +85,7 @@ function linkSchema(): Struct {
             oneOf: [
               { name: "none", members: noInfrastrutureContext },
               {
-                name: "traffic reduction / quiet route",
+                name: "traffic_reduction_or_quiet_route",
                 members: noInfrastrutureContext,
               },
               "advisory lane",
