@@ -80,6 +80,9 @@ export function isTextbox(x: Field): x is TextboxInput {
 export function isCheckbox(x: Field): x is CheckboxInput {
   return "type" in x && x.type == "checkbox";
 }
+export function isEmptyStruct(x: Field): boolean {
+  return "members" in x && x.members.length == 0;
+}
 
 export function bool(name: string): CheckboxInput {
   return { name, type: "checkbox" };

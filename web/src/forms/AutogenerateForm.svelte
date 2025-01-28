@@ -4,6 +4,7 @@
   import {
     isBarewordEnum,
     isCheckbox,
+    isEmptyStruct,
     isNumber,
     isObjectEnum,
     isOneLiner,
@@ -76,13 +77,13 @@
           value={x.name}
         />
         {x.name}
-        {#if oneOfCase != x.name}
+        {#if oneOfCase != x.name && !isEmptyStruct(x)}
           (...)
         {/if}
         <br />
       </label>
 
-      {#if readyOneOfCase == x.name && typeof value == "object"}
+      {#if readyOneOfCase == x.name && typeof value == "object" && !isEmptyStruct(x)}
         <div transition:slide={{ duration: 500 }}>
           <svelte:self spec={x} bind:value={value[x.name]} />
         </div>
@@ -95,11 +96,7 @@
 
     {#each spec.cases as x}
       <label>
-        <input
-          type="radio"
-          bind:group={value}
-          value={x}
-        />
+        <input type="radio" bind:group={value} value={x} />
         {x}
         <br />
       </label>
