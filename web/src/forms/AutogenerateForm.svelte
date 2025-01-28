@@ -7,7 +7,6 @@
     isEnum,
     isNumber,
     isOneLiner,
-    isSimpleEnumCase,
     isStruct,
     isTextbox,
     type Field,
@@ -35,8 +34,6 @@
     value ||= {};
     if (isBarewordEnumCase(value)) {
       oneOfCase = value;
-    } else if (isSimpleEnumCase(value)) {
-      oneOfCase = value.value;
     } else {
       oneOfCase = Object.keys(value)[0] || "";
     }
@@ -77,21 +74,6 @@
           />
           {x}
           <br />
-        </label>
-      {:else if isSimpleEnumCase(x)}
-        <label>
-          <input
-            type="radio"
-            bind:group={oneOfCase}
-            on:change={stringOneOf}
-            value={x.value}
-          />
-          {x.value}
-          {#if x.description}
-            <p>({x.description})</p>
-          {:else}
-            <br />
-          {/if}
         </label>
       {:else}
         <label>

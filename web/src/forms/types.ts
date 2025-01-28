@@ -22,13 +22,9 @@ export interface Enum {
   description?: string;
   oneOf: EnumCase[];
 }
-// Each EnumCase is either itself a Field, or it's a simple string case
-export type EnumCase = Field | BarewordEnumCase | SimpleEnumCase;
+// TODO Revamping these
+export type EnumCase = Field | BarewordEnumCase;
 type BarewordEnumCase = string;
-export interface SimpleEnumCase {
-  value: string;
-  description?: string;
-}
 
 // NumberInput specifies a numeric property
 export interface NumberInput {
@@ -66,9 +62,6 @@ export function isEnum(x: Field): x is Enum {
 }
 export function isBarewordEnumCase(x: EnumCase): x is BarewordEnumCase {
   return typeof x == "string";
-}
-export function isSimpleEnumCase(x: EnumCase): x is SimpleEnumCase {
-  return typeof x == "object" && "value" in x;
 }
 export function isNumber(x: Field): x is NumberInput {
   return "type" in x && x.type == "number";
