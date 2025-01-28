@@ -1,4 +1,4 @@
-import { crossingSchema } from "./infra_schema";
+import { infraSchema } from "./infra_schema";
 import {
   isBarewordEnumCase,
   isCheckbox,
@@ -13,7 +13,7 @@ import {
 // This script transforms a schema expressed in JSON into TypeScript types
 
 //let schema = JSON.parse(fs.readFileSync(argv[2], { encoding: "utf8" }));
-let schema = crossingSchema();
+let schema = infraSchema();
 // Queue contains all of the types to generate
 let queue: Field[] = [schema];
 let seen: Set<string> = new Set();

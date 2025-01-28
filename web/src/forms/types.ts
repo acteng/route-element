@@ -22,7 +22,7 @@ export interface Enum {
   description?: string;
   oneOf: EnumCase[];
 }
-export type EnumCase = Struct | string;
+export type EnumCase = Struct | Enum | string;
 
 // NumberInput specifies a numeric property
 export interface NumberInput {

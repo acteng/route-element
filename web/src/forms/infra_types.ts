@@ -1,5 +1,16 @@
 // This file is auto-generated; do not manually edit
 
+export type Infrastructure = Crossing | BusStop;
+
+export interface BusStop {
+  interaction_between_pedestrians_cyclists?: interaction_between_pedestrians_cyclists;
+}
+
+export type interaction_between_pedestrians_cyclists =
+  | "bus stop boarder"
+  | "bus stop bypass"
+  | "shared use";
+
 export type Crossing =
   | Bridge
   | Parallel

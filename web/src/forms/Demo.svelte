@@ -1,17 +1,17 @@
 <script lang="ts">
   import "@picocss/pico/css/pico.jade.min.css";
   import AutogenerateForm from "./AutogenerateForm.svelte";
-  import { crossingSchema } from "./infra_schema";
-  import type { Crossing } from "./infra_types";
+  import { infraSchema } from "./infra_schema";
+  import type { Infrastructure } from "./infra_types";
 
-  let props: Crossing = {};
+  let props: Infrastructure = {};
 </script>
 
 <div class="left">
   <textarea rows="20">{JSON.stringify(props, null, "  ")}</textarea>
 </div>
 <div class="main">
-  <AutogenerateForm spec={crossingSchema()} bind:value={props} />
+  <AutogenerateForm spec={infraSchema()} bind:value={props} />
 </div>
 
 <style>

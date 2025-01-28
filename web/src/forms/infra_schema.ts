@@ -1,10 +1,17 @@
-import type { CheckboxInput, Field } from "./types";
+import type { CheckboxInput, Enum, Field, Struct } from "./types";
 
 function bool(name: string): CheckboxInput {
   return { name, type: "checkbox" };
 }
 
-export function crossingSchema(): Field {
+export function infraSchema(): Field {
+  return {
+    name: "Infrastructure",
+    oneOf: [crossingSchema(), busStopSchema()],
+  };
+}
+
+function crossingSchema(): Enum {
   let twoContexts = {
     name: "context2",
     oneOf: [
@@ -119,6 +126,18 @@ export function crossingSchema(): Field {
       {
         name: "zebra",
         members: [threeContexts, checkboxes, vehicle, placemaking],
+      },
+    ],
+  };
+}
+
+function busStopSchema(): Struct {
+  return {
+    name: "BusStop",
+    members: [
+      {
+        name: "interaction_between_pedestrians_cyclists",
+        oneOf: ["bus stop boarder", "bus stop bypass", "shared use"],
       },
     ],
   };
